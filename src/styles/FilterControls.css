@@ -1,0 +1,57 @@
+.filter-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.filter-types button,
+.view-toggle button {
+    padding: 8px 16px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.filter-types button:hover,
+.view-toggle button:hover {
+    background-color: #f0f0f0;
+}
+
+.filter-types button.active,
+.view-toggle button.active {
+    background-color: #1e3a8a;
+    color: white;
+    border-color: #1e3a8a;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .filter-controls {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .filter-types {
+        order: 1;
+        justify-content: center;
+    }
+
+    .view-toggle {
+        order: 0;
+        justify-content: center;
+    }
+}
