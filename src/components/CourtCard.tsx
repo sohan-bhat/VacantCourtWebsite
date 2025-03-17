@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import '../styles/CourtList.css';
+import '../styles/CourtCard.css';
 
 interface Court {
   id: number;

@@ -20,7 +20,7 @@
     border-left: 4px solid #198754;
 }
 
-.court-item.booked {
+.court-item.in-use {
     border-left: 4px solid #dc3545;
 }
 
@@ -54,7 +54,7 @@
     color: #0f5132;
 }
 
-.court-status.booked {
+.court-status.in-use {
     background-color: #f8d7da;
     color: #842029;
 }

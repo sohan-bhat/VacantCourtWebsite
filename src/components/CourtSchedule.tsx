@@ -5,7 +5,7 @@ interface Court {
     id: number;
     name: string;
     surface: string;
-    status: 'available' | 'booked' | 'maintenance';
+    status: 'available' | 'in-use' | 'maintenance';
     nextAvailable: string;
 }
 
@@ -24,7 +24,7 @@ function CourtSchedule({ courts }: CourtScheduleProps) {
                         <p className="court-surface">{court.surface}</p>
                         <p className={`court-status ${court.status}`}>
                             {court.status === 'available' ? 'Available' :
-                                court.status === 'booked' ? 'Booked' : 'Maintenance'}
+                                court.status === 'in-use' ? 'In Use' : 'Maintenance'}
                         </p>
                         <p className="next-available">Next available: {court.nextAvailable}</p>
                     </div>

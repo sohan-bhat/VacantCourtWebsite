@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import CourtList from './CourtList';
+import CourtList from './CourtCard';
 import CourtMap from './CourtMap';
 import FilterControls from './FilterControls';
 import SearchBar from './SearchBar';

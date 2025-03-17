@@ -11,7 +11,7 @@ interface Court {
     phone: string;
     hours: string;
     amenities: string[];
-    courts: { id: number; name: string; surface: string; status: 'available' | 'booked' | 'maintenance'; nextAvailable: string }[];
+    courts: { id: number; name: string; surface: string; status: 'available' | 'in-use' | 'maintenance'; nextAvailable: string }[];
     description: string;
     images: string[];
 }
@@ -27,12 +27,12 @@ const mockCourtDetails: Record<number, Court> = {
         hours: '6:00 AM - 10:00 PM',
         amenities: ['Restrooms', 'Water fountains', 'Pro shop', 'Changing rooms'],
         courts: [
-            { id: 101, name: 'Court 1', surface: 'Hard', status: 'available', nextAvailable: 'Now' },
-            { id: 102, name: 'Court 2', surface: 'Hard', status: 'available', nextAvailable: 'Now' },
-            { id: 103, name: 'Court 3', surface: 'Hard', status: 'available', nextAvailable: 'Now' },
-            { id: 104, name: 'Court 4', surface: 'Clay', status: 'booked', nextAvailable: '2:00 PM' },
-            { id: 105, name: 'Court 5', surface: 'Clay', status: 'booked', nextAvailable: '3:30 PM' },
-            { id: 106, name: 'Court 6', surface: 'Clay', status: 'maintenance', nextAvailable: 'Tomorrow' },
+            { id: 101, name: 'Court 1', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
+            { id: 102, name: 'Court 2', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
+            { id: 103, name: 'Court 3', surface: 'Hard', status: 'in-use', nextAvailable: 'N/A' },
+            { id: 104, name: 'Court 4', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
+            { id: 105, name: 'Court 5', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
+            { id: 106, name: 'Court 6', surface: 'Clay', status: 'maintenance', nextAvailable: 'N/A' },
         ],
         description: 'Downtown Tennis Center offers 6 professional-grade tennis courts in the heart of the city. Featuring both hard and clay surfaces, our facility caters to players of all levels.',
         images: ['court1.jpg', 'court2.jpg', 'court3.jpg']
