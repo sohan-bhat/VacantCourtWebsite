@@ -1,44 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import CourtSchedule from './CourtSchedule';
+import { courtsData, Court } from '../data/courtData';
 import '../styles/CourtDetails.css';
-
-interface Court {
-    id: number;
-    name: string;
-    type: string;
-    address: string;
-    phone: string;
-    hours: string;
-    amenities: string[];
-    courts: { id: number; name: string; surface: string; status: 'available' | 'in-use' | 'maintenance'; nextAvailable: string }[];
-    description: string;
-    images: string[];
-}
-
-// Mock data (replace with API calls to your backend)
-const mockCourtDetails: Record<number, Court> = {
-    1: {
-        id: 1,
-        name: 'Downtown Tennis Center',
-        type: 'Tennis',
-        address: '123 Main St, Downtown',
-        phone: '(555) 123-4567',
-        hours: '6:00 AM - 10:00 PM',
-        amenities: ['Restrooms', 'Water fountains', 'Pro shop', 'Changing rooms'],
-        courts: [
-            { id: 101, name: 'Court 1', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
-            { id: 102, name: 'Court 2', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
-            { id: 103, name: 'Court 3', surface: 'Hard', status: 'in-use', nextAvailable: 'N/A' },
-            { id: 104, name: 'Court 4', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
-            { id: 105, name: 'Court 5', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
-            { id: 106, name: 'Court 6', surface: 'Clay', status: 'maintenance', nextAvailable: 'N/A' },
-        ],
-        description: 'Downtown Tennis Center offers 6 professional-grade tennis courts in the heart of the city. Featuring both hard and clay surfaces, our facility caters to players of all levels.',
-        images: ['court1.jpg', 'court2.jpg', 'court3.jpg']
-    },
-    // Other court details would be here
-};
 
 function CourtDetails() {
     const { id } = useParams();
@@ -52,7 +16,7 @@ function CourtDetails() {
         // Replace with your API call
         setTimeout(() => {
             if (id) {
-                setCourtDetails(mockCourtDetails[Number(id)]);
+                setCourtDetails(courtsData[Number(id)]);
             }
             setLoading(false);
         }, 500);
