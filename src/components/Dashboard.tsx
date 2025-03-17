@@ -4,16 +4,7 @@ import CourtMap from './CourtMap';
 import FilterControls from './FilterControls';
 import SearchBar from './SearchBar';
 import '../styles/Dashboard.css';
-import { mockCourts } from '../data/courtData';
-
-interface CourtSummary {
-    id: number;
-    name: string;
-    type: string;
-    available: number;
-    total: number;
-    location: string;
-}
+import { dashboardCourts, CourtSummary } from '../data/courtData';
 
 function Dashboard() {
     const [courts, setCourts] = useState<CourtSummary[]>([]);
@@ -24,7 +15,7 @@ function Dashboard() {
     useEffect(() => {
         // Simulate an API call delay
         setTimeout(() => {
-            setCourts(mockCourts);
+            setCourts(dashboardCourts);
         }, 500);
     }, []);
 

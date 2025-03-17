@@ -30,8 +30,12 @@ export const courtsData: Record<string, Court> = {
         id: 1,
         name: 'Downtown Tennis Center',
         type: 'Tennis',
-        available: 3,
-        total: 6,
+        get available() {
+            return this.courts.filter((subcourt: SubCourt) => subcourt.status === "available").length;
+        },
+        get total() {
+            return this.courts.length;
+        },
         location: 'Downtown',
         address: '123 Main St, Downtown',
         phone: '(555) 123-4567',
@@ -40,7 +44,7 @@ export const courtsData: Record<string, Court> = {
         courts: [
             { id: 101, name: 'Court 1', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
             { id: 102, name: 'Court 2', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
-            { id: 103, name: 'Court 3', surface: 'Hard', status: 'in-use', nextAvailable: 'N/A' },
+            { id: 103, name: 'Court 3', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
             { id: 104, name: 'Court 4', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
             { id: 105, name: 'Court 5', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
             { id: 106, name: 'Court 6', surface: 'Clay', status: 'maintenance', nextAvailable: 'N/A' },
@@ -51,8 +55,17 @@ export const courtsData: Record<string, Court> = {
     // Additional court documents can be added here.
 };
 
+export interface CourtSummary {
+    id: number;
+    name: string;
+    type: string;
+    available: number;
+    total: number;
+    location: string;
+}
+
 // Helper export for Dashboard (as an array of summary documents)
-export const mockCourts = Object.values(courtsData).map(court => ({
+export const dashboardCourts: CourtSummary[] = Object.values(courtsData).map(court => ({
     id: court.id,
     name: court.name,
     type: court.type,
