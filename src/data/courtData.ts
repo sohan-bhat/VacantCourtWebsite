@@ -7,7 +7,7 @@ export interface SubCourt {
 }
 
 export interface Court {
-    id: number;
+    id: string;
     name: string;
     type: string;
     // Summary fields for Dashboard
@@ -26,8 +26,8 @@ export interface Court {
 
 // This object simulates a Firestore-like document store where each key is a document id.
 export const courtsData: Record<string, Court> = {
-    1: {
-        id: 1,
+    "courtId_1": {
+        id: "courtId_1",
         name: 'Downtown Tennis Center',
         type: 'Tennis',
         get available() {
@@ -44,7 +44,7 @@ export const courtsData: Record<string, Court> = {
         courts: [
             { id: 101, name: 'Court 1', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
             { id: 102, name: 'Court 2', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
-            { id: 103, name: 'Court 3', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
+            { id: 103, name: 'Court 3', surface: 'Hard', status: 'in-use', nextAvailable: 'N/A' },
             { id: 104, name: 'Court 4', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
             { id: 105, name: 'Court 5', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
             { id: 106, name: 'Court 6', surface: 'Clay', status: 'maintenance', nextAvailable: 'N/A' },
@@ -55,8 +55,8 @@ export const courtsData: Record<string, Court> = {
     // Additional court documents can be added here.
 };
 
-export interface CourtSummary {
-    id: number;
+export interface CourtCardSummary {
+    id: string;
     name: string;
     type: string;
     available: number;
@@ -65,7 +65,7 @@ export interface CourtSummary {
 }
 
 // Helper export for Dashboard (as an array of summary documents)
-export const dashboardCourts: CourtSummary[] = Object.values(courtsData).map(court => ({
+export const dashboardCourts: CourtCardSummary[] = Object.values(courtsData).map(court => ({
     id: court.id,
     name: court.name,
     type: court.type,

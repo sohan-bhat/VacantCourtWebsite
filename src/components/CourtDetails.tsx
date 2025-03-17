@@ -5,7 +5,7 @@ import { courtsData, Court } from '../data/courtData';
 import '../styles/CourtDetails.css';
 
 function CourtDetails() {
-    const { id } = useParams();
+    const { id } = useParams<{id: string}>();
 
     const [courtDetails, setCourtDetails] = useState<Court | null>(null);
     const [loading, setLoading] = useState(true);
@@ -16,7 +16,7 @@ function CourtDetails() {
         // Replace with your API call
         setTimeout(() => {
             if (id) {
-                setCourtDetails(courtsData[Number(id)]);
+                setCourtDetails(courtsData[id]);
             }
             setLoading(false);
         }, 500);

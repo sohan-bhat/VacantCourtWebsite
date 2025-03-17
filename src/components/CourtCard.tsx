@@ -1,18 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/CourtCard.css';
+import { CourtSummary } from '../data/courtData';
 
-interface Court {
-  id: number;
-  name: string;
-  type: string;
-  location: string;
-  available: number;
-  total: number;
-}
+// interface Court {
+//   id: number;
+//   name: string;
+//   type: string;
+//   location: string;
+//   available: number;
+//   total: number;
+// }
 
 interface CourtListProps {
-  courts: Court[];
+  courts: CourtSummary[];
 }
 
 function CourtList({ courts }: CourtListProps) {

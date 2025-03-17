@@ -4,10 +4,10 @@ import CourtMap from './CourtMap';
 import FilterControls from './FilterControls';
 import SearchBar from './SearchBar';
 import '../styles/Dashboard.css';
-import { dashboardCourts, CourtSummary } from '../data/courtData';
+import { dashboardCourts, CourtCardSummary } from '../data/courtData';
 
 function Dashboard() {
-    const [courts, setCourts] = useState<CourtSummary[]>([]);
+    const [courts, setCourts] = useState<CourtCardSummary[]>([]);
     const [viewMode, setViewMode] = useState('list');
     const [filterType, setFilterType] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');

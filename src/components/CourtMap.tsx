@@ -1,15 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/CourtMap.css';
-
-interface Court {
-    id: number;
-    name: string;
-    available: number;
-}
+import { CourtCardSummary } from '../data/courtData';
 
 interface CourtMapProps {
-    courts: Court[];
+    courts: CourtCardSummary[];
 }
 
 function CourtMap({ courts }: CourtMapProps) {
