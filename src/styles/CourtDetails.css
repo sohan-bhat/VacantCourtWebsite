@@ -15,6 +15,11 @@
     font-weight: 500;
 }
 
+.court-title {
+    display: flex;
+    flex-direction: column;
+}
+
 .court-details-header h2 {
     margin: 0;
     font-size: 1.8rem;
@@ -25,9 +30,44 @@
     background-color: #e9ecef;
     color: #1e3a8a;
     padding: 4px 8px;
+    margin-left: 0.5rem;
     border-radius: 4px;
     font-size: 0.9rem;
-    margin-left: 10px;
+    display: inline-block;
+    margin-top: 5px;
+    width: fit-content;
+}
+
+/* Mobile tabs - hidden by default on desktop */
+.mobile-tabs {
+    display: none;
+    margin-bottom: 20px;
+}
+
+.mobile-tabs button {
+    flex: 1;
+    padding: 12px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.mobile-tabs button:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-right: none;
+}
+
+.mobile-tabs button:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.mobile-tabs button.active {
+    background-color: #1e3a8a;
+    color: white;
+    border-color: #1e3a8a;
 }
 
 .court-details-content {
@@ -73,10 +113,12 @@
 .image-thumbnails {
     display: flex;
     gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 5px;
 }
 
 .thumbnail-placeholder {
-    width: 80px;
+    min-width: 80px;
     height: 60px;
     background-color: #e9ecef;
     border-radius: 4px;
@@ -98,6 +140,8 @@
 
 .metadata-item {
     margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .metadata-label {
@@ -147,6 +191,8 @@
     margin-bottom: 20px;
     overflow-x: auto;
     padding-bottom: 10px;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
 }
 
 .date-button {
@@ -158,6 +204,7 @@
     cursor: pointer;
     transition: all 0.3s;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .date-button:hover {
@@ -184,12 +231,18 @@
     color: #dc3545;
 }
 
+/* Tablet breakpoint */
 @media (max-width: 992px) {
     .court-info-section {
         grid-template-columns: 1fr;
     }
+
+    .court-images {
+        margin-bottom: 20px;
+    }
 }
 
+/* Mobile breakpoint */
 @media (max-width: 768px) {
     .court-details-header {
         flex-direction: column;
@@ -200,8 +253,52 @@
         margin-bottom: 10px;
     }
 
-    .court-type-badge {
-        margin-left: 0;
-        margin-top: 5px;
+    /* Enable mobile tabs */
+    .mobile-tabs {
+        display: flex;
+        width: 100%;
+    }
+
+    /* Set up tab visibility */
+    .court-info-section,
+    .court-availability-section {
+        display: none;
+    }
+
+    .court-info-section.active,
+    .court-availability-section.active {
+        display: block;
+    }
+
+    /* Adjust padding for mobile */
+    .court-info-section,
+    .court-availability-section {
+        padding: 15px;
+    }
+
+    .main-image {
+        height: 200px;
+    }
+
+    .date-selector {
+        margin-right: -15px;
+        margin-left: -15px;
+        padding: 0 15px 10px;
+    }
+
+    .date-button {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Small mobile breakpoint */
+@media (max-width: 480px) {
+    .court-details-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .main-image {
+        height: 180px;
     }
 }

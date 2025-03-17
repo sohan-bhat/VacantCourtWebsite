@@ -46,6 +46,7 @@ function CourtDetails() {
     const [courtDetails, setCourtDetails] = useState<Court | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(new Date());
+    const [activeTab, setActiveTab] = useState<'info' | 'availability'>('info');
 
     useEffect(() => {
         // Replace with your API call
@@ -85,8 +86,23 @@ function CourtDetails() {
                 <span className="court-type-badge">{courtDetails.type}</span>
             </div>
 
+            <div className="mobile-tabs">
+                <button
+                    className={activeTab === 'info' ? 'active' : ''}
+                    onClick={() => setActiveTab('info')}
+                >
+                    Information
+                </button>
+                <button
+                    className={activeTab === 'availability' ? 'active' : ''}
+                    onClick={() => setActiveTab('availability')}
+                >
+                    Availability
+                </button>
+            </div>
+
             <div className="court-details-content">
-                <div className="court-info-section">
+                <div className={`court-info-section ${activeTab === 'info' ? 'active' : ''}`}>
                     <div className="court-images">
                         <div className="main-image">
                             <div className="image-placeholder">Court Image</div>
@@ -128,7 +144,7 @@ function CourtDetails() {
                     </div>
                 </div>
 
-                <div className="court-availability-section">
+                <div className={`court-availability-section ${activeTab === 'availability' ? 'active' : ''}`}>
                     <h3>Court Availability</h3>
 
                     <div className="date-selector">
@@ -151,3 +167,4 @@ function CourtDetails() {
 }
 
 export default CourtDetails;
+
