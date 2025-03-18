@@ -1,22 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import CourtList from './CourtCard';
+import { useState, useEffect } from 'react';
+import CourtCard from './CourtCard';
 import CourtMap from './CourtMap';
 import FilterControls from './FilterControls';
 import SearchBar from './SearchBar';
 import '../styles/Dashboard.css';
-import { dashboardCourts, CourtCardSummary } from '../data/courtData';
+import { fetchCourts, CourtCardSummary } from '../data/courtData';
 
 function Dashboard() {
     const [courts, setCourts] = useState<CourtCardSummary[]>([]);
     const [viewMode, setViewMode] = useState('list');
     const [filterType, setFilterType] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // Simulate an API call delay
-        setTimeout(() => {
-            setCourts(dashboardCourts);
-        }, 500);
+        const loadCourts = async () => {
+            setLoading(true);
+            const fetchedCourts = await fetchCourts();
+            setCourts(fetchedCourts);
+            setLoading(false);
+        };
+        loadCourts();
     }, []);
 
     const filteredCourts = courts.filter(court => {
@@ -33,13 +37,14 @@ function Dashboard() {
                 <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             </div>
 
-            <FilterControls filterType={filterType} setFilterType={setFilterType} viewMode={viewMode} setViewMode={setViewMode} />
+            <FilterControls
+                filterType={filterType}
+                setFilterType={setFilterType}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+            />
 
-            {viewMode === 'list' ? (
-                <CourtList courts={filteredCourts} />
-            ) : (
-                <CourtMap courts={filteredCourts} />
-            )}
+            {viewMode === 'list' ? <CourtCard courts={filteredCourts} loading={loading} /> : <CourtMap courts={filteredCourts} />}
         </div>
     );
 }

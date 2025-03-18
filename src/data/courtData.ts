@@ -1,3 +1,5 @@
+import { getDocument, queryDocuments } from "../firebase/firestoreSerivce";
+
 export interface SubCourt {
     id: number;
     name: string;
@@ -24,37 +26,6 @@ export interface Court {
     images: string[];
 }
 
-// This object simulates a Firestore-like document store where each key is a document id.
-export const courtsData: Record<string, Court> = {
-    "courtId_1": {
-        id: "courtId_1",
-        name: 'Downtown Tennis Center',
-        type: 'Tennis',
-        get available() {
-            return this.courts.filter((subcourt: SubCourt) => subcourt.status === "available").length;
-        },
-        get total() {
-            return this.courts.length;
-        },
-        location: 'Downtown',
-        address: '123 Main St, Downtown',
-        phone: '(555) 123-4567',
-        hours: '6:00 AM - 10:00 PM',
-        amenities: ['Restrooms', 'Water fountains', 'Pro shop', 'Changing rooms'],
-        courts: [
-            { id: 101, name: 'Court 1', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
-            { id: 102, name: 'Court 2', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
-            { id: 103, name: 'Court 3', surface: 'Hard', status: 'in-use', nextAvailable: 'N/A' },
-            { id: 104, name: 'Court 4', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
-            { id: 105, name: 'Court 5', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
-            { id: 106, name: 'Court 6', surface: 'Clay', status: 'maintenance', nextAvailable: 'N/A' },
-        ],
-        description: 'Downtown Tennis Center offers 6 professional-grade tennis courts in the heart of the city. Featuring both hard and clay surfaces, our facility caters to players of all levels.',
-        images: ['court1.jpg', 'court2.jpg', 'court3.jpg']
-    },
-    // Additional court documents can be added here.
-};
-
 export interface CourtCardSummary {
     id: string;
     name: string;
@@ -64,12 +35,69 @@ export interface CourtCardSummary {
     location: string;
 }
 
+
+export const fetchCourts = async(): Promise<CourtCardSummary[]> => {
+    const documents = await queryDocuments("Courts", [], "name", "asc", 0);
+    if(!documents) return [];
+    return documents.map((doc) => {
+        const data = doc as unknown as Court;
+        const available = data.courts.filter(subcourt => subcourt.status === "available").length;
+        return {
+            id: data.id,
+            name: data.name,
+            type: data.type,
+            available,
+            total: data.courts.length,
+            location: data.location
+        };
+    });
+};
+
+export const fetchCourtById = async(courtId: string): Promise<Court | null> => {
+    const data = await getDocument("Courts", courtId);
+    if (data) {
+        return data as unknown as Court;
+    }
+    return null;
+}
+
+// This object simulates a Firestore-like document store where each key is a document id.
+// export const courtsData: Record<string, Court> = {
+//     "courtId_1": {
+//         id: "courtId_1",
+//         name: 'Downtown Tennis Center',
+//         type: 'Tennis',
+//         get available() {
+//             return this.courts.filter((subcourt: SubCourt) => subcourt.status === "available").length;
+//         },
+//         get total() {
+//             return this.courts.length;
+//         },
+//         location: 'Downtown',
+//         address: '123 Main St, Downtown',
+//         phone: '(555) 123-4567',
+//         hours: '6:00 AM - 10:00 PM',
+//         amenities: ['Restrooms', 'Water fountains', 'Pro shop', 'Changing rooms'],
+//         courts: [
+//             { id: 101, name: 'Court 1', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
+//             { id: 102, name: 'Court 2', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
+//             { id: 103, name: 'Court 3', surface: 'Hard', status: 'in-use', nextAvailable: 'N/A' },
+//             { id: 104, name: 'Court 4', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
+//             { id: 105, name: 'Court 5', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
+//             { id: 106, name: 'Court 6', surface: 'Clay', status: 'maintenance', nextAvailable: 'N/A' },
+//         ],
+//         description: 'Downtown Tennis Center offers 6 professional-grade tennis courts in the heart of the city. Featuring both hard and clay surfaces, our facility caters to players of all levels.',
+//         images: ['court1.jpg', 'court2.jpg', 'court3.jpg']
+//     },
+//     // Additional court documents can be added here.
+// };
+
 // Helper export for Dashboard (as an array of summary documents)
-export const dashboardCourts: CourtCardSummary[] = Object.values(courtsData).map(court => ({
-    id: court.id,
-    name: court.name,
-    type: court.type,
-    available: court.available,
-    total: court.total,
-    location: court.location,
-}));
+// export const dashboardCourts: CourtCardSummary[] = Object.values(courtsData).map(court => ({
+//     id: court.id,
+//     name: court.name,
+//     type: court.type,
+//     available: court.available,
+//     total: court.total,
+//     location: court.location,
+// }));

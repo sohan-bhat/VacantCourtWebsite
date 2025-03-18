@@ -1,29 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import CourtSchedule from './CourtSchedule';
-import { courtsData, Court } from '../data/courtData';
+import { Court, fetchCourtById } from '../data/courtData';
 import '../styles/CourtDetails.css';
+import { CircularProgress } from '@mui/material';
 
 function CourtDetails() {
-    const { id } = useParams<{id: string}>();
-
+    const { id } = useParams<{ id: string }>();
     const [courtDetails, setCourtDetails] = useState<Court | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [activeTab, setActiveTab] = useState<'info' | 'availability'>('info');
 
     useEffect(() => {
-        // Replace with your API call
-        setTimeout(() => {
+        const loadCourtDetails = async () => {
             if (id) {
-                setCourtDetails(courtsData[id]);
+                const fetchedCourt = await fetchCourtById(id);
+                setCourtDetails(fetchedCourt);
             }
             setLoading(false);
-        }, 500);
+        };
+        loadCourtDetails()
     }, [id]);
 
     if (loading) {
-        return <div className="loading">Loading court details...</div>;
+        return <div className="loading"><CircularProgress /></div>;
     }
 
     if (!courtDetails) {
@@ -97,14 +98,19 @@ function CourtDetails() {
                             </div>
                         </div>
 
-                        <div className="amenities">
-                            <h4>Amenities</h4>
-                            <ul>
-                                {courtDetails.amenities.map((amenity, index) => (
-                                    <li key={index}>{amenity}</li>
-                                ))}
-                            </ul>
-                        </div>
+                        {courtDetails.amenities ?
+                            <div className="amenities">
+                                <h4>Amenities</h4>
+                                <ul>
+                                    {courtDetails.amenities.map((amenity, index) => (
+                                        <li key={index}>{amenity}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                            :
+                            null
+                        }
+
                     </div>
                 </div>
 
