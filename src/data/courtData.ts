@@ -24,6 +24,7 @@ export interface Court {
     courts: SubCourt[];
     description: string;
     images: string[];
+    isConfigured: boolean;
 }
 
 export interface CourtCardSummary {
@@ -33,14 +34,21 @@ export interface CourtCardSummary {
     available: number;
     total: number;
     location: string;
+    isConfigured: boolean;
 }
 
 
 export const fetchCourts = async(): Promise<CourtCardSummary[]> => {
     const documents = await queryDocuments("Courts", [], "name", "asc", 0);
     if(!documents) return [];
-    return documents.map((doc) => {
+
+    const configuredDocs = documents.filter((doc) => {
         const data = doc as unknown as Court;
+        return data.isConfigured;
+    })
+
+    return configuredDocs.map((doc) => {
+        const data = doc as unknown as Court
         const available = data.courts.filter(subcourt => subcourt.status === "available").length;
         return {
             id: data.id,
@@ -48,7 +56,8 @@ export const fetchCourts = async(): Promise<CourtCardSummary[]> => {
             type: data.type,
             available,
             total: data.courts.length,
-            location: data.location
+            location: data.location,
+            isConfigured: data.isConfigured
         };
     });
 };
@@ -56,39 +65,37 @@ export const fetchCourts = async(): Promise<CourtCardSummary[]> => {
 export const fetchCourtById = async(courtId: string): Promise<Court | null> => {
     const data = await getDocument("Courts", courtId);
     if (data) {
-        return data as unknown as Court;
+        const court = data as unknown as Court;
+        if (!court.isConfigured) {
+            return null;
+        };
+        return court;
     }
     return null;
 }
 
 // This object simulates a Firestore-like document store where each key is a document id.
 // export const courtsData: Record<string, Court> = {
-//     "courtId_1": {
-//         id: "courtId_1",
-//         name: 'Downtown Tennis Center',
-//         type: 'Tennis',
-//         get available() {
-//             return this.courts.filter((subcourt: SubCourt) => subcourt.status === "available").length;
-//         },
-//         get total() {
-//             return this.courts.length;
-//         },
-//         location: 'Downtown',
-//         address: '123 Main St, Downtown',
-//         phone: '(555) 123-4567',
-//         hours: '6:00 AM - 10:00 PM',
-//         amenities: ['Restrooms', 'Water fountains', 'Pro shop', 'Changing rooms'],
-//         courts: [
-//             { id: 101, name: 'Court 1', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
-//             { id: 102, name: 'Court 2', surface: 'Hard', status: 'available', nextAvailable: 'N/A' },
-//             { id: 103, name: 'Court 3', surface: 'Hard', status: 'in-use', nextAvailable: 'N/A' },
-//             { id: 104, name: 'Court 4', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
-//             { id: 105, name: 'Court 5', surface: 'Clay', status: 'in-use', nextAvailable: 'N/A' },
-//             { id: 106, name: 'Court 6', surface: 'Clay', status: 'maintenance', nextAvailable: 'N/A' },
-//         ],
-//         description: 'Downtown Tennis Center offers 6 professional-grade tennis courts in the heart of the city. Featuring both hard and clay surfaces, our facility caters to players of all levels.',
-//         images: ['court1.jpg', 'court2.jpg', 'court3.jpg']
-//     },
+    //     "courtId_1": {
+    //         id: "courtId_1",
+    //         name: 'Downtown Tennis Center',
+    //         type: 'Tennis',
+    //         location: 'XYZ',
+    //         address: '123 Main St, Downtown',
+    //         phone: '(555) 123-4567',
+    //         hours: '6:00 AM - 10:00 PM',
+    //         amenities: ['Restrooms', 'Water fountains']
+    //         courts: [
+    //             { id: 101, name: 'Court 1', surface: 'Hard', status: 'available'},
+    //             { id: 102, name: 'Court 2', surface: 'Hard', status: 'available'},
+    //             { id: 103, name: 'Court 3', surface: 'Hard', status: 'in-use'},
+    //             { id: 104, name: 'Court 4', surface: 'Clay', status: 'in-use'},
+    //             { id: 105, name: 'Court 5', surface: 'Clay', status: 'in-use'},
+    //             { id: 106, name: 'Court 6', surface: 'Clay', status: 'maintenance'},
+    //         ],
+    //         description: 'Downtown Tennis Center offers 6 professional-grade tennis courts in the heart of the city. Featuring both hard and clay surfaces, our facility caters to players of all levels.',
+    //         images: ['court1.jpg', 'court2.jpg', 'court3.jpg']
+    //     },
 //     // Additional court documents can be added here.
 // };
 

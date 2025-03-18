@@ -46,7 +46,7 @@ function CourtDetails() {
     return (
         <div className="court-details">
             <div className="court-details-header">
-                <Link to="/" className="back-link">← Back to List</Link>
+                <Link to="/" className='back-link'>← Back to List</Link>
                 <h2>{courtDetails.name}</h2>
                 <span className="court-type-badge">{courtDetails.type}</span>
             </div>
@@ -80,22 +80,37 @@ function CourtDetails() {
                     </div>
 
                     <div className="court-description">
-                        <h3>About</h3>
-                        <p>{courtDetails.description}</p>
+                        {courtDetails.description ?
+                            <>
+                                <h3>About</h3>
+                                <p>{courtDetails.description}</p>
+                            </>
+                            : null
+                        }
 
                         <div className="court-metadata">
-                            <div className="metadata-item">
-                                <span className="metadata-label">Address:</span>
-                                <span>{courtDetails.address}</span>
-                            </div>
-                            <div className="metadata-item">
-                                <span className="metadata-label">Phone:</span>
-                                <span>{courtDetails.phone}</span>
-                            </div>
-                            <div className="metadata-item">
-                                <span className="metadata-label">Hours:</span>
-                                <span>{courtDetails.hours}</span>
-                            </div>
+                            {courtDetails.address ?
+                                <div className="metadata-item">
+                                    <span className="metadata-label">Address:</span>
+                                    <span>{courtDetails.address}</span>
+                                </div>
+                                : null
+                            }
+                            {courtDetails.phone ?
+                                <div className="metadata-item">
+                                    <span className="metadata-label">Phone:</span>
+                                    <span>{courtDetails.phone}</span>
+                                </div>
+                                : null
+                            }
+                            {courtDetails.hours ?
+                                <div className="metadata-item">
+                                    <span className="metadata-label">Hours:</span>
+                                    <span>{courtDetails.hours}</span>
+                                </div>
+                                : null
+                            }
+
                         </div>
 
                         {courtDetails.amenities ?
@@ -132,7 +147,7 @@ function CourtDetails() {
                     <CourtSchedule courts={courtDetails.courts} date={formatDate(selectedDate)} />
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

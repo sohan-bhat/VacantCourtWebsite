@@ -13,6 +13,13 @@
     color: #1e3a8a;
     margin-right: 15px;
     font-weight: 500;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    padding: 0.25rem;
+}
+
+.back-link:hover {
+    background-color: #e9ecef;
 }
 
 .court-title {

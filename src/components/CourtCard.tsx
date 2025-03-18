@@ -18,7 +18,8 @@ function CourtCard({ courts, loading }: CourtCardProps) {
                     courts.length === 0 ? (
                         <div className="no-results">No courts found matching your criteria</div>
                     ) : (
-                        courts.map(court => (
+                        courts.map(court => (      
+                            court.isConfigured ? (
                             <div key={court.id} className="court-card">
                                 <div className="court-info">
                                     <h3>{court.name}</h3>
@@ -35,6 +36,8 @@ function CourtCard({ courts, loading }: CourtCardProps) {
                                     <Link to={`/court/${court.id}`} className="view-details">View Details</Link>
                                 </div>
                             </div>
+                            )
+                            : null
                         ))
                     )
                 )
