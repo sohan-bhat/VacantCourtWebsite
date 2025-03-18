@@ -13,8 +13,6 @@ export interface Court {
     name: string;
     type: string;
     // Summary fields for Dashboard
-    available: number;
-    total: number;
     location: string;
     // Detailed fields for CourtDetails
     address: string;

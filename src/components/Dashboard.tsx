@@ -11,7 +11,7 @@ function Dashboard() {
     const [viewMode, setViewMode] = useState('list');
     const [filterType, setFilterType] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const loadCourts = async () => {
