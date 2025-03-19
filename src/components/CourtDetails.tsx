@@ -11,6 +11,7 @@ function CourtDetails() {
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [activeTab, setActiveTab] = useState<'info' | 'availability'>('info');
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
     useEffect(() => {
         const loadCourtDetails = async () => {
@@ -69,18 +70,50 @@ function CourtDetails() {
             <div className="court-details-content">
                 <div className={`court-info-section ${activeTab === 'info' ? 'active' : ''}`}>
                     <div className="court-images">
-                        <div className="main-image">
-                            <div className="image-placeholder">Court Image</div>
-                        </div>
-                        {courtDetails.images ?
-                            <div className="image-thumbnails">
-                            {courtDetails.images.map((img, index) => (
-                                <div key={index} className="thumbnail-placeholder">Thumbnail</div>
-                            ))}
-                        </div>
-                        : null
-                        }
-                        
+                        {courtDetails.images && courtDetails.images.length > 0 ? (
+                            <>
+                                <div className="main-image">
+                                    <img
+                                        src={courtDetails.images[selectedImageIndex]}
+                                        alt={`${courtDetails.name} - Image ${selectedImageIndex + 1}`}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover'
+                                        }}
+                                    />
+                                </div>
+                                {courtDetails.images.length > 1 && (
+                                    <div className="image-thumbnails">
+                                        {courtDetails.images.map((image, index) => (
+                                            <div
+                                                key={index}
+                                                onClick={() => setSelectedImageIndex(index)}
+                                                className={`thumbnail ${selectedImageIndex === index ? 'active' : ''}`}
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    opacity: selectedImageIndex === index ? 1 : 0.6,
+                                                    transition: 'opacity 0.3s ease'
+                                                }}
+                                            >
+                                                <img
+                                                    src={image}
+                                                    alt={`${courtDetails.name} thumbnail ${index + 1}`}
+                                                    style={{
+                                                        width: '100px',
+                                                        height: '75px',
+                                                        objectFit: 'cover',
+                                                        borderRadius: '4px'
+                                                    }}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="image-placeholder">No Images Available</div>
+                        )}
                     </div>
 
                     <div className="court-description">
