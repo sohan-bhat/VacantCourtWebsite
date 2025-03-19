@@ -16,8 +16,10 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { createDocument } from '../firebase/firestoreSerivce';
+import { createDocument } from '../database/firestoreSerivce';
 import { toast } from 'react-toastify';
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import { uploadImage } from '../database/storageService';
 
 interface SubCourt {
     name: string;
@@ -53,6 +55,7 @@ interface CourtFormData {
     amenities: string[];
     courts: SubCourt[];
     description: string;
+    images: Array<{ file: File; preview: string }>;
 }
 
 const initialFormData: CourtFormData = {
@@ -64,7 +67,8 @@ const initialFormData: CourtFormData = {
     hours: '',
     amenities: [],
     courts: [{ name: '', surface: '' }],
-    description: ''
+    description: '',
+    images: []
 };
 
 export default function AddCourt({ open, onClose }: AddCourtProps) {
@@ -72,6 +76,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
     const [amenity, setAmenity] = useState('');
     const [errors, setErrors] = useState<FormErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
     const basicInfoRef = useRef<HTMLDivElement>(null);
     const contactInfoRef = useRef<HTMLDivElement>(null);
@@ -144,11 +149,27 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
     const handleSubmit = async () => {
         if (!validateForm()) return;
         setIsSubmitting(true);
+
         try {
+            // Upload images to Cloudinary
+            const uploadedUrls = await Promise.all(
+                formData.images.map(async (image) => {
+                    const url = await uploadImage(
+                        image.file,
+                        formData.name, // Use facility name for folder structure
+                        (progress) => setUploadProgress(progress.progress)
+                    );
+                    return url;
+                })
+            );
+
+            // Create Firestore document with image URLs
             await createDocument('Courts', {
                 ...formData,
+                images: uploadedUrls,
                 isConfigured: false
             });
+
             toast.success('Facility added successfully!');
             onClose();
             setFormData(initialFormData);
@@ -157,7 +178,16 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
             toast.error('Failed to add facility. Please try again.');
         } finally {
             setIsSubmitting(false);
+            setUploadProgress(null);
         }
+    };
+
+    const handleImageAdd = (file: File) => {
+        const preview = URL.createObjectURL(file);
+        setFormData({
+            ...formData,
+            images: [...formData.images, { file, preview }]
+        });
     };
 
     const handleAddAmenity = () => {
@@ -259,8 +289,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
             <DialogContent sx={{ p: 3 }}>
                 <Alert severity="warning" sx={{
                     mb: 3,
-                    mx: -3,
-                    borderRadius: 0
+                    borderRadius: 2
                 }}>
                     Note: The facility will not be visible in the application until it is configured with our hardware system.
                 </Alert>
@@ -452,6 +481,124 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                             helperText={errors.description}
                             fullWidth
                         />
+                    </Box>
+
+                    <Divider />
+
+                    <Box>
+                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>
+                            Facility Images
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Add images of your facility (recommended)
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
+                            {formData.images.map((image, index) => (
+                                <Box
+                                    key={index}
+                                    sx={{
+                                        position: 'relative',
+                                        width: 200,
+                                        height: 200,
+                                        borderRadius: 1,
+                                        overflow: 'hidden',
+                                        border: '1px solid #ddd',
+                                    }}
+                                >
+                                    <img
+                                        src={image.preview}
+                                        alt={`Facility ${index + 1}`}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            display: 'block'
+                                        }}
+                                    />
+                                    <IconButton
+                                        onClick={() => {
+                                            URL.revokeObjectURL(image.preview);
+                                            const newImages = formData.images.filter((_, i) => i !== index);
+                                            setFormData({ ...formData, images: newImages });
+                                        }}
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 8,
+                                            right: 8,
+                                            bgcolor: 'rgba(0,0,0,0.5)',
+                                            '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
+                                        }}
+                                    >
+                                        <DeleteIcon sx={{ color: 'white' }} />
+                                    </IconButton>
+                                </Box>
+                            ))}
+
+                            {formData.images.length < 5 && (
+                                <Box
+                                    component="label"
+                                    sx={{
+                                        width: 200,
+                                        height: 200,
+                                        border: '2px dashed #ccc',
+                                        borderRadius: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        flexDirection: 'column',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            borderColor: '#1e3a8a',
+                                            bgcolor: 'rgba(30, 58, 138, 0.04)'
+                                        }
+                                    }}
+                                >
+                                    <input
+                                        type="file"
+                                        hidden
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                handleImageAdd(file);
+                                            }
+                                        }}
+                                    />
+                                    {uploadProgress !== null ? (
+                                        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                                            <CircularProgress variant="determinate" value={uploadProgress} />
+                                            <Box
+                                                sx={{
+                                                    top: 0,
+                                                    left: 0,
+                                                    bottom: 0,
+                                                    right: 0,
+                                                    position: 'absolute',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                }}
+                                            >
+                                                <Typography variant="caption" component="div" color="text.secondary">
+                                                    {`${Math.round(uploadProgress)}%`}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    ) : (
+                                        <>
+                                            <AddPhotoAlternateIcon sx={{ fontSize: 40, color: '#666', mb: 1 }} />
+                                            <Typography variant="body2" color="text.secondary">
+                                                Add Image
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                (Max 10MB)
+                                            </Typography>
+                                        </>
+                                    )}
+                                </Box>
+                            )}
+                        </Box>
                     </Box>
                 </Box>
             </DialogContent>

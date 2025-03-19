@@ -72,11 +72,15 @@ function CourtDetails() {
                         <div className="main-image">
                             <div className="image-placeholder">Court Image</div>
                         </div>
-                        <div className="image-thumbnails">
+                        {courtDetails.images ?
+                            <div className="image-thumbnails">
                             {courtDetails.images.map((img, index) => (
                                 <div key={index} className="thumbnail-placeholder">Thumbnail</div>
                             ))}
                         </div>
+                        : null
+                        }
+                        
                     </div>
 
                     <div className="court-description">
