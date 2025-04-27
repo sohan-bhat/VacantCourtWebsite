@@ -10,7 +10,6 @@ interface Court {
 
 interface CourtScheduleProps {
     courts: Court[];
-    date: string;
 }
 
 function CourtSchedule({ courts }: CourtScheduleProps) {
@@ -25,7 +24,6 @@ function CourtSchedule({ courts }: CourtScheduleProps) {
                             {court.status === 'available' ? 'Available' :
                                 court.status === 'in-use' ? 'In Use' : 'Maintenance'}
                         </p>
-                        {court.nextAvailable ? <p className="next-available">Next available: {court.nextAvailable}</p> : null}
                     </div>
                 </div>
             ))}

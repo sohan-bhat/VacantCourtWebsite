@@ -16,10 +16,10 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { createDocument } from '../database/firestoreSerivce';
+import { createDocument } from '../services/database/firestoreSerivce';
 import { toast } from 'react-toastify';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import { uploadImage } from '../database/storageService';
+import { uploadImage } from '../services/database/storageService';
 
 interface SubCourt {
     name: string;
@@ -226,10 +226,11 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                 }}
             >
                 <TextField
+                    autoComplete='off'
                     required
                     size="small"
                     label="Court Name/Number"
-                    placeholder="e.g., Court 1, Main Court"
+                    placeholder="e.g. Court 1, Main Court"
                     value={court.name}
                     onChange={(e) => {
                         const newCourts = [...formData.courts];
@@ -241,10 +242,11 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                     fullWidth
                 />
                 <TextField
+                    autoComplete='off'
                     required
                     size="small"
                     label="Surface Type"
-                    placeholder="e.g., Hard, Clay, Grass"
+                    placeholder="e.g. Hard, Clay, Grass"
                     value={court.surface}
                     onChange={(e) => {
                         const newCourts = [...formData.courts];
@@ -286,11 +288,33 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
             }}>
                 Add New Sports Facility
             </DialogTitle>
-            <DialogContent sx={{ p: 3 }}>
-                <Alert severity="warning" sx={{
-                    mb: 3,
-                    borderRadius: 2
-                }}>
+            <DialogContent
+                sx={{
+                    p: 3,
+                    '&::-webkit-scrollbar': {
+                        width: '8px',
+                    },
+                    '&::-webkit-scrollbar-track': {
+                        background: '#f1f1f1',
+                        borderRadius: '4px',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                        background: '#c1c1c1',
+                        borderRadius: '4px',
+                        '&:hover': {
+                            background: '#a1a1a1',
+                        },
+                    },
+                }}
+            >
+                <Alert severity="warning"
+                    sx={{
+                        mb: 3,
+                        borderRadius: 2,
+                        '& .MuiAlert-icon': {
+                            color: 'warning.dark'
+                        }
+                    }}>
                     Note: The facility will not be visible in the application until it is configured with our hardware system.
                 </Alert>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -303,9 +327,10 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                         </Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <TextField
+                                autoComplete='off'
                                 required
                                 label="Facility Name"
-                                placeholder="e.g., Downtown Tennis Center"
+                                placeholder="e.g. Downtown Tennis Center"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 error={!!errors.name}
@@ -313,9 +338,10 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                             />
                             <Box sx={{ display: 'flex', gap: 2 }}>
                                 <TextField
+                                    autoComplete='off'
                                     required
                                     label="Sport Type"
-                                    placeholder="e.g., Tennis, Basketball"
+                                    placeholder="e.g. Tennis, Basketball"
                                     value={formData.type}
                                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                                     error={!!errors.type}
@@ -323,9 +349,10 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                                     fullWidth
                                 />
                                 <TextField
+                                    autoComplete='off'
                                     required
                                     label="Location Area"
-                                    placeholder="e.g., Downtown, West Side"
+                                    placeholder="e.g. Downtown, West Side"
                                     value={formData.location}
                                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                     error={!!errors.location}
@@ -347,6 +374,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                         </Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <TextField
+                                autoComplete='off'
                                 required
                                 label="Facility Address"
                                 placeholder="Complete street address"
@@ -357,15 +385,17 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                             />
                             <Box sx={{ display: 'flex', gap: 2 }}>
                                 <TextField
+                                    autoComplete='off'
                                     label="Contact Phone"
-                                    placeholder="e.g., (555) 123-4567"
+                                    placeholder="e.g. (555) 123-4567"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     fullWidth
                                 />
                                 <TextField
+                                    autoComplete='off'
                                     label="Operating Hours"
-                                    placeholder="e.g., 6:00 AM - 10:00 PM"
+                                    placeholder="e.g. 6:00 AM - 10:00 PM"
                                     value={formData.hours}
                                     onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
                                     fullWidth
@@ -381,10 +411,11 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                             Facility Amenities
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            List available amenities at your facility (e.g., Restrooms, Water Fountains, Pro Shop)
+                            List available amenities at your facility (e.g. Restrooms, Water Fountains, Pro Shop)
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                             <TextField
+                                autoComplete='off'
                                 size="small"
                                 value={amenity}
                                 onChange={(e) => setAmenity(e.target.value)}
@@ -471,6 +502,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                             Provide a detailed description of your facility and its features
                         </Typography>
                         <TextField
+                            autoComplete='off'
                             required
                             multiline
                             rows={4}

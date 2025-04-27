@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import '../styles/CourtCard.css';
 import { CourtCardSummary } from '../data/courtData';
-import { CircularProgress } from '@mui/material'
+import { CircularProgress, IconButton } from '@mui/material';
+import Notifications from '@mui/icons-material/Notifications';
 
 interface CourtCardProps {
     courts: CourtCardSummary[];
-    loading?: boolean
+    loading?: boolean;
 }
 
 function CourtCard({ courts, loading }: CourtCardProps) {
@@ -14,15 +15,35 @@ function CourtCard({ courts, loading }: CourtCardProps) {
             {loading ? (
                 <div className='no-results'><CircularProgress /></div>
             ) : (
-                (
-                    courts.length === 0 ? (
-                        <div className="no-results">No courts found matching your criteria</div>
-                    ) : (
-                        courts.map(court => (      
-                            court.isConfigured ? (
+                courts.length === 0 ? (
+                    <div className="no-results">No courts found matching your criteria</div>
+                ) : (
+                    courts.map(court => (
+                        court.isConfigured ? (
                             <div key={court.id} className="court-card">
                                 <div className="court-info">
-                                    <h3>{court.name}</h3>
+                                    {court.available > 0 ? (
+                                        <h3 className="court-name">
+                                            {court.name}
+                                        </h3>
+                                    ) : (
+                                        <div style={{ position: 'relative' }}>
+                                            <h3 className="court-name">
+                                                {court.name}
+                                            </h3>
+                                            <IconButton
+                                                color="warning"
+                                                size="small"
+                                                sx={{
+                                                    position: 'absolute',
+                                                    right: 0,
+                                                    top: 0
+                                                }}
+                                            >
+                                                <Notifications />
+                                            </IconButton>
+                                        </div>
+                                    )}
                                     <p className="court-type">{court.type}</p>
                                     <p className="court-location">{court.location}</p>
                                     <div className="availability-indicator">
@@ -36,10 +57,8 @@ function CourtCard({ courts, loading }: CourtCardProps) {
                                     <Link to={`/court/${court.id}`} className="view-details">View Details</Link>
                                 </div>
                             </div>
-                            )
-                            : null
-                        ))
-                    )
+                        ) : null
+                    ))
                 )
             )}
         </div>

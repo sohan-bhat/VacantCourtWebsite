@@ -1,4 +1,4 @@
-import { getDocument, queryDocuments } from "../database/firestoreSerivce";
+import { getDocument, queryDocuments } from "../services/database/firestoreSerivce";
 
 export interface SubCourt {
     id: number;
