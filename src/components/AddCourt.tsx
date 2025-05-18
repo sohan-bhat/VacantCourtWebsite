@@ -24,6 +24,8 @@ import { uploadImage } from '../services/database/storageService';
 interface SubCourt {
     name: string;
     surface: string;
+    status: string;
+    isConfigured: boolean;
 }
 
 interface CourtError {
@@ -66,7 +68,12 @@ const initialFormData: CourtFormData = {
     phone: '',
     hours: '',
     amenities: [],
-    courts: [{ name: '', surface: '' }],
+    courts: [{
+        name: '',
+        surface: '',
+        status: 'available',
+        isConfigured: false,
+    }],
     description: '',
     images: []
 };
@@ -167,7 +174,6 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
             await createDocument('Courts', {
                 ...formData,
                 images: uploadedUrls,
-                isConfigured: false
             });
 
             toast.success('Facility added successfully!');
@@ -203,7 +209,12 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
     const handleAddCourt = () => {
         setFormData({
             ...formData,
-            courts: [...formData.courts, { name: '', surface: '' }]
+            courts: [...formData.courts, {
+                name: '',
+                surface: '',
+                status: 'available',
+                isConfigured: false
+            }]
         });
     };
 
