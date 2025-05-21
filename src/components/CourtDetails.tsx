@@ -1,0 +1,166 @@
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import CourtSchedule from './CourtSchedule';
+import { Court, fetchCourtById } from '../data/courtData';
+import '../styles/CourtDetails.css';
+import { CircularProgress } from '@mui/material';
+
+function CourtDetails() {
+    const { id } = useParams<{ id: string }>();
+    const [courtDetails, setCourtDetails] = useState<Court | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'info' | 'availability'>('info');
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+    useEffect(() => {
+        const loadCourtDetails = async () => {
+            if (id) {
+                const fetchedCourt = await fetchCourtById(id);
+                setCourtDetails(fetchedCourt);
+            }
+            setLoading(false);
+        };
+        loadCourtDetails()
+    }, [id]);
+
+    if (loading) {
+        return <div className="loading"><CircularProgress /></div>;
+    }
+
+    if (!courtDetails) {
+        return <div className="error">Court not found</div>;
+    }
+
+    return (
+        <div className="court-details">
+            <div className="court-details-header">
+                <Link to="/" className='back-link'>← Back to List</Link>
+                <h2>{courtDetails.name}</h2>
+                <span className="court-type-badge">{courtDetails.type}</span>
+            </div>
+
+            <div className="mobile-tabs">
+                <button
+                    className={activeTab === 'info' ? 'active' : ''}
+                    onClick={() => setActiveTab('info')}
+                >
+                    Information
+                </button>
+                <button
+                    className={activeTab === 'availability' ? 'active' : ''}
+                    onClick={() => setActiveTab('availability')}
+                >
+                    Availability
+                </button>
+            </div>
+
+            <div className="court-details-content">
+                <div className={`court-info-section ${activeTab === 'info' ? 'active' : ''}`}>
+                    <div className="court-images">
+                        {courtDetails.images && courtDetails.images.length > 0 ? (
+                            <>
+                                <div className="main-image">
+                                    <img
+                                        src={courtDetails.images[selectedImageIndex]}
+                                        alt={`${courtDetails.name} - Image ${selectedImageIndex + 1}`}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover'
+                                        }}
+                                    />
+                                </div>
+                                {courtDetails.images.length > 1 && (
+                                    <div className="image-thumbnails">
+                                        {courtDetails.images.map((image, index) => (
+                                            <div
+                                                key={index}
+                                                onClick={() => setSelectedImageIndex(index)}
+                                                className={`thumbnail ${selectedImageIndex === index ? 'active' : ''}`}
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    opacity: selectedImageIndex === index ? 1 : 0.6,
+                                                    transition: 'opacity 0.3s ease'
+                                                }}
+                                            >
+                                                <img
+                                                    src={image}
+                                                    alt={`${courtDetails.name} thumbnail ${index + 1}`}
+                                                    style={{
+                                                        width: '100px',
+                                                        height: '75px',
+                                                        objectFit: 'cover',
+                                                        borderRadius: '4px'
+                                                    }}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="image-placeholder">No Images Available</div>
+                        )}
+                    </div>
+
+                    <div className="court-description">
+                        {courtDetails.description ?
+                            <>
+                                <h3>About</h3>
+                                <p>{courtDetails.description}</p>
+                            </>
+                            : null
+                        }
+
+                        <div className="court-metadata">
+                            {courtDetails.address ?
+                                <div className="metadata-item">
+                                    <span className="metadata-label">Address:</span>
+                                    <span>{courtDetails.address}</span>
+                                </div>
+                                : null
+                            }
+                            {courtDetails.phone ?
+                                <div className="metadata-item">
+                                    <span className="metadata-label">Phone:</span>
+                                    <span>{courtDetails.phone}</span>
+                                </div>
+                                : null
+                            }
+                            {courtDetails.hours ?
+                                <div className="metadata-item">
+                                    <span className="metadata-label">Hours:</span>
+                                    <span>{courtDetails.hours}</span>
+                                </div>
+                                : null
+                            }
+
+                        </div>
+
+                        {courtDetails.amenities ?
+                            <div className="amenities">
+                                <h4>Amenities</h4>
+                                <ul>
+                                    {courtDetails.amenities.map((amenity, index) => (
+                                        <li key={index}>{amenity}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                            :
+                            null
+                        }
+
+                    </div>
+                </div>
+
+                <div className={`court-availability-section ${activeTab === 'availability' ? 'active' : ''}`}>
+                    <h3>Court Availability</h3>
+                    <CourtSchedule courts={courtDetails.courts}/>
+                </div>
+            </div>
+        </div >
+    );
+}
+
+export default CourtDetails;
+
