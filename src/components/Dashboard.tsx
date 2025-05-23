@@ -4,7 +4,7 @@ import CourtMap from './CourtMap';
 import FilterControls from './FilterControls';
 import SearchBar from './SearchBar';
 import '../styles/Dashboard.css';
-import { fetchCourts, CourtCardSummary } from '../data/courtData';
+import { subscribeToCourtsSummary, CourtCardSummary } from '../data/courtData'; 
 
 function Dashboard() {
     const [courts, setCourts] = useState<CourtCardSummary[]>([]);
@@ -12,23 +12,39 @@ function Dashboard() {
     const [filterType, setFilterType] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const loadCourts = async () => {
-            setLoading(true);
-            const fetchedCourts = await fetchCourts();
-            setCourts(fetchedCourts);
-            setLoading(false);
+        setLoading(true);
+        setError(null);
+
+        const unsubscribe = subscribeToCourtsSummary(
+            (fetchedCourtsSummary) => {
+                setCourts(fetchedCourtsSummary);
+                setLoading(false);
+            },
+            (err) => {
+                console.error("Failed to subscribe to court updates:", err);
+                setError("Failed to load court data. Please try again later.");
+                setLoading(false);
+            }
+        );
+
+        return () => {
+            unsubscribe();
         };
-        loadCourts();
     }, []);
 
     const filteredCourts = courts.filter(court => {
-        const matchesType = filterType === 'all' || court.type.toLowerCase() === filterType.toLowerCase();
-        const matchesSearch = court.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            court.location.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = filterType === 'all' || (court.type && court.type.toLowerCase() === filterType.toLowerCase());
+        const matchesSearch = (court.name && court.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                              (court.location && court.location.toLowerCase().includes(searchTerm.toLowerCase()));
         return matchesType && matchesSearch;
     });
+    
+    if (error) {
+        return <div className="dashboard-error">{error}</div>;
+    }
 
     return (
         <div className="dashboard">

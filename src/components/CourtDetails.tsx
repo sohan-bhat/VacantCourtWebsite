@@ -1,36 +1,82 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import CourtSchedule from './CourtSchedule';
-import { Court, fetchCourtById } from '../data/courtData';
+import { Court, subscribeToCourtById } from '../data/courtData';
 import '../styles/CourtDetails.css';
 import { CircularProgress } from '@mui/material';
 
 function CourtDetails() {
-    const { id } = useParams<{ id: string }>();
-    const [courtDetails, setCourtDetails] = useState<Court | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'info' | 'availability'>('info');
-    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const { id } = useParams<{ id: string }>(); 
+    const [courtDetails, setCourtDetails] = useState<Court | null>(null); 
+    const [loading, setLoading] = useState(true); 
+    const [error, setError] = useState<string | null>(null); 
+    const [activeTab, setActiveTab] = useState<'info' | 'availability'>('info'); 
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0); 
 
-    useEffect(() => {
-        const loadCourtDetails = async () => {
-            if (id) {
-                const fetchedCourt = await fetchCourtById(id);
-                setCourtDetails(fetchedCourt);
-            }
+    
+    useEffect(() => { 
+        if (!id) {
             setLoading(false);
+            setError("Court ID is missing.");
+            setCourtDetails(null);
+            return; 
+        }
+
+        setLoading(true);
+        setError(null);
+        setCourtDetails(null);
+
+        const unsubscribe = subscribeToCourtById(
+            id,
+            (fetchedCourt) => {
+                setCourtDetails(fetchedCourt);
+                setLoading(false);
+            },
+            (err) => {
+                console.error("Failed to subscribe to court details:", err);
+                setError("Failed to load court details. Please try again.");
+                setLoading(false);
+            }
+        );
+
+        return () => {
+            unsubscribe();
         };
-        loadCourtDetails()
     }, [id]);
 
+    
+    useEffect(() => { 
+        
+        
+        
+        if (courtDetails && courtDetails.images && courtDetails.images.length > 0) {
+            
+            
+            if (selectedImageIndex >= courtDetails.images.length) {
+                setSelectedImageIndex(0);
+            }
+            
+            
+        } else {
+            
+            setSelectedImageIndex(0);
+        }
+    }, [courtDetails]); 
+
+    
     if (loading) {
         return <div className="loading"><CircularProgress /></div>;
     }
 
-    if (!courtDetails) {
-        return <div className="error">Court not found</div>;
+    if (error) {
+        return <div className="error-message">{error}</div>;
     }
 
+    if (!courtDetails) {
+        return <div className="error">Court not found or is not currently available.</div>;
+    }
+
+    
     return (
         <div className="court-details">
             <div className="court-details-header">
@@ -137,7 +183,7 @@ function CourtDetails() {
 
                         </div>
 
-                        {courtDetails.amenities ?
+                        {courtDetails.amenities && courtDetails.amenities.length > 0 ?
                             <div className="amenities">
                                 <h4>Amenities</h4>
                                 <ul>
@@ -149,7 +195,6 @@ function CourtDetails() {
                             :
                             null
                         }
-
                     </div>
                 </div>
 
@@ -163,4 +208,3 @@ function CourtDetails() {
 }
 
 export default CourtDetails;
-

@@ -9,19 +9,28 @@ import {
     query,
     where,
     orderBy,
-    limit,
-    FieldValue,
-    WhereFilterOp
+    limit as firestoreLimit,
+    onSnapshot, 
+    Unsubscribe,
+    QueryConstraint,
+    WhereFilterOp as FirebaseWhereFilterOp
 } from 'firebase/firestore';
 import { db } from './config';
 
-// Create a new document
-interface DocumentData {
-    [key: string]: FieldValue | Partial<unknown> | undefined;
+export interface FirestoreDocWithId {
+    id: string;
+    [key: string]: any;
+}
+
+interface CreateDocumentData {
+    [key: string]: any;
+}
+interface UpdateDocumentData {
+    [key: string]: any;
 }
 
 
-export const createDocument = async (collectionName: string, data: DocumentData): Promise<string | undefined> => {
+export const createDocument = async (collectionName: string, data: CreateDocumentData): Promise<string | undefined> => {
     try {
         const docRef = await addDoc(collection(db, collectionName), data);
         return docRef.id;
@@ -29,16 +38,15 @@ export const createDocument = async (collectionName: string, data: DocumentData)
         console.error("Document creation error:", error);
         throw error;
     }
-}
+};
 
-// Get a document
-export const getDocument = async (collectionName: string, id: string): Promise<DocumentData | null> => {
+export const getDocument = async <T extends FirestoreDocWithId = FirestoreDocWithId>(collectionName: string, id: string): Promise<T | null> => {
     try {
         const docRef = doc(db, collectionName, id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            return { id: docSnap.id, ...docSnap.data() };
+            return { id: docSnap.id, ...docSnap.data() } as T;
         } else {
             return null;
         }
@@ -46,10 +54,9 @@ export const getDocument = async (collectionName: string, id: string): Promise<D
         console.error("Document get error:", error);
         throw error;
     }
-}
+};
 
-// Update a document
-export const updateDocument = async (collectionName: string, id: string, data: DocumentData): Promise<boolean | null> => {
+export const updateDocument = async (collectionName: string, id: string, data: UpdateDocumentData): Promise<boolean> => {
     try {
         const docRef = doc(db, collectionName, id);
         await updateDoc(docRef, data);
@@ -58,10 +65,9 @@ export const updateDocument = async (collectionName: string, id: string, data: D
         console.error("Document update error:", error);
         throw error;
     }
-}
+};
 
-// Delete a document
-export const deleteDocument = async (collectionName: string, id: string): Promise<boolean | null> => {
+export const deleteDocument = async (collectionName: string, id: string): Promise<boolean> => {
     try {
         const docRef = doc(db, collectionName, id);
         await deleteDoc(docRef);
@@ -70,47 +76,108 @@ export const deleteDocument = async (collectionName: string, id: string): Promis
         console.error("Document deletion error:", error);
         throw error;
     }
-}
+};
 
-// Query documents
-
-interface QueryCondition {
+export interface QueryCondition {
     field: string;
-    operator: WhereFilterOp;
-    value: string | number | boolean | null | Date;
+    operator: FirebaseWhereFilterOp;
+    value: any;
 }
 
-export const queryDocuments = async (collectionName: string, conditions: QueryCondition[], orderByField: string, orderDirection: 'asc' | 'desc', limitCount: number): Promise<Array<DocumentData> | null> => {
+const buildQueryConstraints = (
+    conditions?: QueryCondition[],
+    orderByField?: string,
+    orderDirection?: 'asc' | 'desc',
+    limitCount?: number
+): QueryConstraint[] => {
+    const constraints: QueryConstraint[] = [];
+    if (conditions) {
+        conditions.forEach(condition => {
+            constraints.push(where(condition.field, condition.operator, condition.value));
+        });
+    }
+    if (orderByField && orderDirection) {
+        constraints.push(orderBy(orderByField, orderDirection));
+    }
+    if (limitCount && limitCount > 0) {
+        constraints.push(firestoreLimit(limitCount));
+    }
+    return constraints;
+};
+
+export const queryDocuments = async <T extends FirestoreDocWithId = FirestoreDocWithId>(
+    collectionName: string,
+    conditions?: QueryCondition[],
+    orderByField?: string,
+    orderDirection?: 'asc' | 'desc',
+    limitCount?: number
+): Promise<T[]> => {
     try {
-        let q = query(collection(db, collectionName));
-
-        // Add where conditions
-        if (conditions.length > 0) {
-            conditions.forEach(condition => {
-                q = query(q, where(condition.field, condition.operator, condition.value));
-            });
-        }
-
-        // Add orderBy
-        if (orderByField) {
-            q = query(q, orderBy(orderByField, orderDirection));
-        }
-        
-        // Add limit
-        if (limitCount > 0) {
-            q = query(q, limit(limitCount));
-        }
-
+        const constraints = buildQueryConstraints(conditions, orderByField, orderDirection, limitCount);
+        const q = query(collection(db, collectionName), ...constraints);
         const querySnapshots = await getDocs(q);
-        const documents: DocumentData[] = [];
-
-        querySnapshots.forEach((doc) => {
-            documents.push({ id: doc.id, ...doc.data() });
-        })
-
-        return documents;
+        return querySnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
     } catch (error) {
         console.error("Document query error:", error);
         throw error;
+    }
+};
+
+export const listenToQuery = <T extends FirestoreDocWithId>(
+    collectionName: string,
+    onUpdate: (data: T[]) => void,
+    onError: (error: Error) => void,
+    conditions?: QueryCondition[],
+    orderByField?: string,
+    orderDirection?: 'asc' | 'desc',
+    limitCount?: number
+): Unsubscribe => {
+    try {
+        const constraints = buildQueryConstraints(conditions, orderByField, orderDirection, limitCount);
+        const q = query(collection(db, collectionName), ...constraints);
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const documents = querySnapshot.docs.map(doc => (
+                { id: doc.id, ...doc.data() } as T
+            ));
+            onUpdate(documents);
+        }, (error) => {
+            console.error("Error listening to query: ", error);
+            onError(error);
+        });
+
+        return unsubscribe;
+    } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        console.error("Error setting up query listener: ", error);
+        onError(error);
+        return () => {};
+    }
+};
+
+export const listenToDocument = <T extends FirestoreDocWithId>(
+    collectionName: string,
+    documentId: string,
+    onUpdate: (data: T | null) => void,
+    onError: (error: Error) => void
+): Unsubscribe => {
+    try {
+        const docRef = doc(db, collectionName, documentId);
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                onUpdate({ id: docSnap.id, ...docSnap.data() } as T);
+            } else {
+                onUpdate(null); 
+            }
+        }, (error) => {
+            console.error(`Error listening to document ${collectionName}/${documentId}: `, error);
+            onError(error);
+        });
+        return unsubscribe;
+    } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        console.error(`Error setting up document listener ${collectionName}/${documentId}: `, error);
+        onError(error);
+        return () => {};
     }
 };

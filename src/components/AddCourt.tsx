@@ -158,19 +158,19 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
         setIsSubmitting(true);
 
         try {
-            // Upload images to Cloudinary
+            
             const uploadedUrls = await Promise.all(
                 formData.images.map(async (image) => {
                     const url = await uploadImage(
                         image.file,
-                        formData.name, // Use facility name for folder structure
+                        formData.name, 
                         (progress) => setUploadProgress(progress.progress)
                     );
                     return url;
                 })
             );
 
-            // Create Firestore document with image URLs
+            
             await createDocument('Courts', {
                 ...formData,
                 images: uploadedUrls,
