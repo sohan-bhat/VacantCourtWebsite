@@ -12,7 +12,9 @@ import {
     Chip,
     Alert,
     Divider,
-    CircularProgress
+    CircularProgress,
+    useTheme,       // Import useTheme
+    useMediaQuery   // Import useMediaQuery
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -26,6 +28,9 @@ interface SubCourt {
     surface: string;
     status: string;
     isConfigured: boolean;
+    // Add id and nextAvailable if they are part of your actual SubCourt structure in Firestore
+    id?: number; // Or string, if it's a Firestore ID for sub-courts
+    nextAvailable?: string;
 }
 
 interface CourtError {
@@ -69,10 +74,12 @@ const initialFormData: CourtFormData = {
     hours: '',
     amenities: [],
     courts: [{
+        id: Date.now(), // Example temporary ID, adjust if you have a different scheme
         name: '',
         surface: '',
         status: 'available',
         isConfigured: false,
+        nextAvailable: ''
     }],
     description: '',
     images: []
@@ -83,7 +90,11 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
     const [amenity, setAmenity] = useState('');
     const [errors, setErrors] = useState<FormErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+    const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     const basicInfoRef = useRef<HTMLDivElement>(null);
     const contactInfoRef = useRef<HTMLDivElement>(null);
@@ -114,19 +125,16 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
 
         formData.courts.forEach((court, index) => {
             const courtError: CourtError = {};
-
             if (!court.name.trim()) {
                 if (!firstErrorRef) firstErrorRef = courtsRef;
                 courtError.name = 'Court name is required';
                 hasCourtErrors = true;
             }
-
             if (!court.surface.trim()) {
                 if (!firstErrorRef) firstErrorRef = courtsRef;
                 courtError.surface = 'Surface type is required';
                 hasCourtErrors = true;
             }
-
             courtErrors[index] = courtError;
         });
 
@@ -142,49 +150,49 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
         }
 
         setErrors(newErrors);
-
         if (firstErrorRef?.current) {
             firstErrorRef.current.scrollIntoView({
                 behavior: 'smooth',
                 block: 'start'
             });
         }
-
         return !hasErrors;
     };
 
     const handleSubmit = async () => {
         if (!validateForm()) return;
         setIsSubmitting(true);
+        setUploadProgress({});
 
         try {
-            
-            const uploadedUrls = await Promise.all(
-                formData.images.map(async (image) => {
-                    const url = await uploadImage(
-                        image.file,
-                        formData.name, 
-                        (progress) => setUploadProgress(progress.progress)
-                    );
-                    return url;
-                })
-            );
+            const uploadedUrls: string[] = [];
+            for (const image of formData.images) {
+                 const url = await uploadImage(
+                    image.file,
+                    formData.name,
+                    (progress) => {
+                        setUploadProgress(prev => ({ ...prev, [image.preview]: progress.progress }));
+                    }
+                );
+                uploadedUrls.push(url);
+                URL.revokeObjectURL(image.preview);
+            }
 
-            
             await createDocument('Courts', {
                 ...formData,
+                courts: formData.courts.map(c => ({...c, id: c.id || Date.now() })), // Ensure ID for subcourts if needed
                 images: uploadedUrls,
             });
 
             toast.success('Facility added successfully!');
             onClose();
-            setFormData(initialFormData);
+            setFormData(initialFormData); // Reset form
+            setUploadProgress({});
         } catch (error) {
             console.error('Error adding facility:', error);
             toast.error('Failed to add facility. Please try again.');
         } finally {
             setIsSubmitting(false);
-            setUploadProgress(null);
         }
     };
 
@@ -198,10 +206,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
 
     const handleAddAmenity = () => {
         if (amenity && !formData.amenities.includes(amenity)) {
-            setFormData({
-                ...formData,
-                amenities: [...formData.amenities, amenity]
-            });
+            setFormData({ ...formData, amenities: [...formData.amenities, amenity] });
             setAmenity('');
         }
     };
@@ -210,10 +215,12 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
         setFormData({
             ...formData,
             courts: [...formData.courts, {
+                id: Date.now(), // Example temporary ID
                 name: '',
                 surface: '',
                 status: 'available',
-                isConfigured: false
+                isConfigured: false,
+                nextAvailable: ''
             }]
         });
     };
@@ -226,52 +233,43 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
     const renderCourts = () => {
         return formData.courts.map((court, index) => (
             <Box
-                key={index}
+                key={court.id || index} // Use a stable key if available
                 sx={{
                     display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' }, // Responsive direction
                     gap: 2,
                     mb: 2,
                     p: 2,
                     bgcolor: 'grey.50',
-                    borderRadius: 1
+                    borderRadius: 1,
+                    alignItems: { sm: 'center' } // Align items nicely on larger screens
                 }}
             >
                 <TextField
-                    autoComplete='off'
-                    required
-                    size="small"
-                    label="Court Name/Number"
-                    placeholder="e.g. Court 1, Main Court"
-                    value={court.name}
+                    autoComplete='off' required size="small" label="Court Name/Number"
+                    placeholder="e.g. Court 1" value={court.name}
                     onChange={(e) => {
                         const newCourts = [...formData.courts];
                         newCourts[index].name = e.target.value;
                         setFormData({ ...formData, courts: newCourts });
                     }}
-                    error={!!(errors.courts?.[index]?.name)}
-                    helperText={errors.courts?.[index]?.name}
-                    fullWidth
+                    error={!!(errors.courts?.[index]?.name)} helperText={errors.courts?.[index]?.name} fullWidth
                 />
                 <TextField
-                    autoComplete='off'
-                    required
-                    size="small"
-                    label="Surface Type"
-                    placeholder="e.g. Hard, Clay, Grass"
-                    value={court.surface}
+                    autoComplete='off' required size="small" label="Surface Type"
+                    placeholder="e.g. Hard, Clay" value={court.surface}
                     onChange={(e) => {
                         const newCourts = [...formData.courts];
                         newCourts[index].surface = e.target.value;
                         setFormData({ ...formData, courts: newCourts });
                     }}
-                    error={!!(errors.courts?.[index]?.surface)}
-                    helperText={errors.courts?.[index]?.surface}
-                    fullWidth
+                    error={!!(errors.courts?.[index]?.surface)} helperText={errors.courts?.[index]?.surface} fullWidth
                 />
                 <IconButton
                     onClick={() => handleRemoveCourt(index)}
                     disabled={formData.courts.length === 1}
                     color="error"
+                    sx={{ alignSelf: { xs: 'flex-end', sm: 'center' } }} // Adjust alignment
                 >
                     <DeleteIcon />
                 </IconButton>
@@ -285,402 +283,173 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
             onClose={onClose}
             maxWidth="md"
             fullWidth
-            PaperProps={{
-                sx: {
-                    borderRadius: 2,
-                    bgcolor: 'background.paper',
-                }
-            }}
+            fullScreen={isMobile} // Make dialog full screen on mobile
+            PaperProps={{ sx: { borderRadius: isMobile ? 0 : 2, bgcolor: 'background.paper' } }}
         >
-            <DialogTitle sx={{
-                bgcolor: '#1e3a8a',
-                color: 'white',
-                py: 2
-            }}>
+            <DialogTitle sx={{ bgcolor: '#1e3a8a', color: 'white', py: 2, px: { xs: 2, sm: 3 } }}>
                 Add New Sports Facility
             </DialogTitle>
             <DialogContent
                 sx={{
-                    p: 3,
-                    '&::-webkit-scrollbar': {
-                        width: '8px',
-                    },
-                    '&::-webkit-scrollbar-track': {
-                        background: '#f1f1f1',
-                        borderRadius: '4px',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                        background: '#c1c1c1',
-                        borderRadius: '4px',
-                        '&:hover': {
-                            background: '#a1a1a1',
-                        },
-                    },
+                    p: { xs: 2, sm: 3 }, // Responsive padding
+                    // Custom scrollbar styles (optional, check if they cause issues on mobile)
+                    '&::-webkit-scrollbar': { width: '8px' },
+                    '&::-webkit-scrollbar-track': { background: '#f1f1f1', borderRadius: '4px' },
+                    '&::-webkit-scrollbar-thumb': { background: '#c1c1c1', borderRadius: '4px', '&:hover': { background: '#a1a1a1' } },
                 }}
             >
-                <Alert severity="warning"
-                    sx={{
-                        mb: 3,
-                        borderRadius: 2,
-                        '& .MuiAlert-icon': {
-                            color: 'warning.dark'
-                        }
-                    }}>
-                    Note: The facility will not be visible in the application until it is configured with our hardware system.
+                <Alert severity="warning" sx={{ mb: 3, borderRadius: 2, '& .MuiAlert-icon': { color: 'warning.dark' } }}>
+                    Note: The facility will not be visible until configured with our hardware system.
                 </Alert>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <Box ref={basicInfoRef}>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>
-                            Facility Information
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            Enter general information about your sports facility
-                        </Typography>
+                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Information</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Enter general information</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <TextField
-                                autoComplete='off'
-                                required
-                                label="Facility Name"
-                                placeholder="e.g. Downtown Tennis Center"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                error={!!errors.name}
-                                helperText={errors.name}
+                                autoComplete='off' required label="Facility Name" placeholder="e.g. Downtown Tennis Center"
+                                value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                error={!!errors.name} helperText={errors.name}
                             />
-                            <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}> {/* Responsive */}
                                 <TextField
-                                    autoComplete='off'
-                                    required
-                                    label="Sport Type"
-                                    placeholder="e.g. Tennis, Basketball"
-                                    value={formData.type}
-                                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                    error={!!errors.type}
-                                    helperText={errors.type}
-                                    fullWidth
+                                    autoComplete='off' required label="Sport Type" placeholder="e.g. Tennis"
+                                    value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                    error={!!errors.type} helperText={errors.type} fullWidth
                                 />
                                 <TextField
-                                    autoComplete='off'
-                                    required
-                                    label="Location Area"
-                                    placeholder="e.g. Downtown, West Side"
-                                    value={formData.location}
-                                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                    error={!!errors.location}
-                                    helperText={errors.location}
-                                    fullWidth
+                                    autoComplete='off' required label="Location Area" placeholder="e.g. Downtown"
+                                    value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                    error={!!errors.location} helperText={errors.location} fullWidth
                                 />
                             </Box>
                         </Box>
                     </Box>
-
                     <Divider />
-
                     <Box ref={contactInfoRef}>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>
-                            Contact Details
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            Facility contact information for users
-                        </Typography>
+                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Contact Details</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Facility contact information</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <TextField
-                                autoComplete='off'
-                                required
-                                label="Facility Address"
-                                placeholder="Complete street address"
-                                value={formData.address}
-                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                error={!!errors.address}
-                                helperText={errors.address}
+                                autoComplete='off' required label="Facility Address" placeholder="Complete street address"
+                                value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                error={!!errors.address} helperText={errors.address}
                             />
-                            <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}> {/* Responsive */}
                                 <TextField
-                                    autoComplete='off'
-                                    label="Contact Phone"
-                                    placeholder="e.g. (555) 123-4567"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    fullWidth
+                                    autoComplete='off' label="Contact Phone" placeholder="(555) 123-4567"
+                                    value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} fullWidth
                                 />
                                 <TextField
-                                    autoComplete='off'
-                                    label="Operating Hours"
-                                    placeholder="e.g. 6:00 AM - 10:00 PM"
-                                    value={formData.hours}
-                                    onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
-                                    fullWidth
+                                    autoComplete='off' label="Operating Hours" placeholder="6 AM - 10 PM"
+                                    value={formData.hours} onChange={(e) => setFormData({ ...formData, hours: e.target.value })} fullWidth
                                 />
                             </Box>
                         </Box>
                     </Box>
-
                     <Divider />
-
                     <Box>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>
-                            Facility Amenities
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            List available amenities at your facility (e.g. Restrooms, Water Fountains, Pro Shop)
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Amenities</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>List available amenities</Typography>
+                        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mb: 2, alignItems: { sm: 'center' } }}> {/* Responsive */}
                             <TextField
-                                autoComplete='off'
-                                size="small"
-                                value={amenity}
-                                onChange={(e) => setAmenity(e.target.value)}
-                                placeholder="Enter an amenity"
-                                fullWidth
+                                autoComplete='off' size="small" value={amenity} onChange={(e) => setAmenity(e.target.value)}
+                                placeholder="Enter an amenity" fullWidth
                             />
-                            <Button
-                                onClick={handleAddAmenity}
-                                variant="contained"
-                                size="small"
-                                sx={{
-                                    minWidth: '100px',
-                                    bgcolor: '#1e3a8a',
-                                    '&:hover': {
-                                        bgcolor: '#1e3a8a',
-                                        opacity: 0.9
-                                    }
-                                }}
-                            >
-                                Add
-                            </Button>
+                            <Button onClick={handleAddAmenity} variant="contained" size="small" sx={{ minWidth: '100px', width: { xs: '100%', sm: 'auto'}, bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#1e3a8a', opacity: 0.9 } }}>Add</Button>
                         </Box>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                             {formData.amenities.map((item, index) => (
-                                <Chip
-                                    key={index}
-                                    label={item}
-                                    onDelete={() => {
-                                        setFormData({
-                                            ...formData,
-                                            amenities: formData.amenities.filter((_, i) => i !== index)
-                                        });
-                                    }}
-                                    sx={{
-                                        bgcolor: '#1e3a8a',
-                                        color: 'white',
-                                        '& .MuiChip-deleteIcon': {
-                                            color: 'white'
-                                        }
-                                    }}
+                                <Chip key={index} label={item} onDelete={() => setFormData({ ...formData, amenities: formData.amenities.filter((_, i) => i !== index) })}
+                                    sx={{ bgcolor: '#1e3a8a', color: 'white', '& .MuiChip-deleteIcon': { color: 'white' } }}
                                 />
                             ))}
                         </Box>
                     </Box>
-
                     <Divider />
-
                     <Box ref={courtsRef}>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>
-                            Individual Courts
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            Add details for each individual court within your facility
-                        </Typography>
-                        <Box sx={{ mb: 2 }}>
-                            {renderCourts()}
-                        </Box>
-                        <Button
-                            startIcon={<AddIcon />}
-                            onClick={handleAddCourt}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                                mb: 2,
-                                borderColor: '#1e3a8a',
-                                color: '#1e3a8a',
-                                '&:hover': {
-                                    borderColor: '#1e3a8a',
-                                    bgcolor: 'rgba(30, 58, 138, 0.04)'
-                                }
-                            }}
-                        >
-                            Add Another Court
-                        </Button>
+                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Individual Courts</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Details for each court</Typography>
+                        <Box sx={{ mb: 2 }}>{renderCourts()}</Box>
+                        <Button startIcon={<AddIcon />} onClick={handleAddCourt} variant="outlined" size="small"
+                            sx={{ mb: 2, borderColor: '#1e3a8a', color: '#1e3a8a', '&:hover': { borderColor: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.04)' } }}
+                        >Add Another Court</Button>
                     </Box>
-
                     <Divider />
-
                     <Box ref={descriptionRef}>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>
-                            Facility Description
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            Provide a detailed description of your facility and its features
-                        </Typography>
+                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Description</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Detailed description</Typography>
                         <TextField
-                            autoComplete='off'
-                            required
-                            multiline
-                            rows={4}
-                            placeholder="Describe your facility's features, atmosphere, and any special characteristics"
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            error={!!errors.description}
-                            helperText={errors.description}
-                            fullWidth
+                            autoComplete='off' required multiline rows={4} placeholder="Describe your facility..."
+                            value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            error={!!errors.description} helperText={errors.description} fullWidth
                         />
                     </Box>
-
                     <Divider />
-
                     <Box>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>
-                            Facility Images
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            Add images of your facility (recommended)
-                        </Typography>
-
-                        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
+                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Images</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Add images (recommended)</Typography>
+                        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 2 }}> {/* Adjusted gap */}
                             {formData.images.map((image, index) => (
                                 <Box
                                     key={index}
                                     sx={{
                                         position: 'relative',
-                                        width: 200,
-                                        height: 200,
-                                        borderRadius: 1,
-                                        overflow: 'hidden',
-                                        border: '1px solid #ddd',
+                                        width: { xs: 'calc(50% - 6px)', sm: 150 }, // Responsive width, 2 per row on mobile
+                                        height: { xs: 120, sm: 150 },              // Responsive height
+                                        borderRadius: 1, overflow: 'hidden', border: '1px solid #ddd',
                                     }}
                                 >
-                                    <img
-                                        src={image.preview}
-                                        alt={`Facility ${index + 1}`}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover',
-                                            display: 'block'
-                                        }}
-                                    />
-                                    <IconButton
-                                        onClick={() => {
-                                            URL.revokeObjectURL(image.preview);
-                                            const newImages = formData.images.filter((_, i) => i !== index);
-                                            setFormData({ ...formData, images: newImages });
-                                        }}
-                                        sx={{
-                                            position: 'absolute',
-                                            top: 8,
-                                            right: 8,
-                                            bgcolor: 'rgba(0,0,0,0.5)',
-                                            '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
-                                        }}
-                                    >
-                                        <DeleteIcon sx={{ color: 'white' }} />
-                                    </IconButton>
+                                     {uploadProgress[image.preview] !== undefined && uploadProgress[image.preview] < 100 && (
+                                        <Box sx={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(255,255,255,0.7)'}}>
+                                             <CircularProgress variant="determinate" value={uploadProgress[image.preview]} size={40} />
+                                        </Box>
+                                    )}
+                                    <img src={image.preview} alt={`Facility ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                    {!isSubmitting && (
+                                        <IconButton
+                                            onClick={() => {
+                                                URL.revokeObjectURL(image.preview);
+                                                const newImages = formData.images.filter((_, i) => i !== index);
+                                                setFormData({ ...formData, images: newImages });
+                                            }}
+                                            sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'rgba(0,0,0,0.5)', '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }, p: 0.5 }}
+                                        >
+                                            <DeleteIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                                        </IconButton>
+                                    )}
                                 </Box>
                             ))}
-
-                            {formData.images.length < 5 && (
+                            {formData.images.length < 5 && !isSubmitting && (
                                 <Box
                                     component="label"
                                     sx={{
-                                        width: 200,
-                                        height: 200,
-                                        border: '2px dashed #ccc',
-                                        borderRadius: 1,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        flexDirection: 'column',
-                                        cursor: 'pointer',
-                                        '&:hover': {
-                                            borderColor: '#1e3a8a',
-                                            bgcolor: 'rgba(30, 58, 138, 0.04)'
-                                        }
+                                        width: { xs: 'calc(50% - 6px)', sm: 150 }, // Responsive width
+                                        height: { xs: 120, sm: 150 },             // Responsive height
+                                        border: '2px dashed #ccc', borderRadius: 1, display: 'flex', alignItems: 'center',
+                                        justifyContent: 'center', flexDirection: 'column', cursor: 'pointer',
+                                        '&:hover': { borderColor: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.04)' }
                                     }}
                                 >
-                                    <input
-                                        type="file"
-                                        hidden
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                                handleImageAdd(file);
-                                            }
-                                        }}
-                                    />
-                                    {uploadProgress !== null ? (
-                                        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                                            <CircularProgress variant="determinate" value={uploadProgress} />
-                                            <Box
-                                                sx={{
-                                                    top: 0,
-                                                    left: 0,
-                                                    bottom: 0,
-                                                    right: 0,
-                                                    position: 'absolute',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                }}
-                                            >
-                                                <Typography variant="caption" component="div" color="text.secondary">
-                                                    {`${Math.round(uploadProgress)}%`}
-                                                </Typography>
-                                            </Box>
-                                        </Box>
-                                    ) : (
+                                    <input type="file" hidden accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { handleImageAdd(file); e.target.value = '';}}} />
                                         <>
-                                            <AddPhotoAlternateIcon sx={{ fontSize: 40, color: '#666', mb: 1 }} />
-                                            <Typography variant="body2" color="text.secondary">
-                                                Add Image
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                (Max 10MB)
-                                            </Typography>
+                                            <AddPhotoAlternateIcon sx={{ fontSize: {xs: 30, sm: 40}, color: '#666', mb: 1 }} />
+                                            <Typography variant="body2" color="text.secondary" sx={{textAlign: 'center', fontSize: {xs: '0.75rem', sm: '0.875rem'}}} >Add Image</Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{fontSize: {xs: '0.6rem', sm: '0.75rem'}}}>(Max 5)</Typography>
                                         </>
-                                    )}
                                 </Box>
                             )}
                         </Box>
                     </Box>
                 </Box>
             </DialogContent>
-            <DialogActions sx={{ p: 3, bgcolor: 'grey.50' }}>
-                <Button
-                    onClick={onClose}
-                    variant="outlined"
-                    disabled={isSubmitting}
-                    sx={{
-                        mr: 1,
-                        borderColor: '#1e3a8a',
-                        color: '#1e3a8a',
-                        '&:hover': {
-                            borderColor: '#1e3a8a',
-                            bgcolor: 'rgba(30, 58, 138, 0.04)'
-                        }
-                    }}
-                >
-                    Cancel
-                </Button>
-                <Button
-                    onClick={handleSubmit}
-                    variant="contained"
-                    disabled={isSubmitting}
-                    sx={{
-                        px: 4,
-                        bgcolor: '#1e3a8a',
-                        '&:hover': {
-                            bgcolor: '#1e3a8a',
-                            opacity: 0.9
-                        }
-                    }}
-                >
-                    {isSubmitting ? (
-                        <CircularProgress size={24} color="inherit" />
-                    ) : (
-                        'Add Facility'
-                    )}
-                </Button>
+            <DialogActions sx={{ p: { xs: 2, sm: 3 }, bgcolor: 'grey.50', flexDirection: {xs: 'column-reverse', sm: 'row'}, gap: {xs: 1, sm: 0} }}>
+                <Button onClick={onClose} variant="outlined" disabled={isSubmitting}
+                    sx={{ mr: {sm: 1}, width: {xs: '100%', sm: 'auto'}, borderColor: '#1e3a8a', color: '#1e3a8a', '&:hover': { borderColor: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.04)' } }}
+                >Cancel</Button>
+                <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting}
+                    sx={{ px: 4, width: {xs: '100%', sm: 'auto'}, bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#1e3a8a', opacity: 0.9 } }}
+                >{isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Add Facility'}</Button>
             </DialogActions>
         </Dialog>
     );
