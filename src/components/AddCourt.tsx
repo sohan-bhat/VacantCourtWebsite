@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
     Button,
     Dialog,
@@ -13,8 +13,9 @@ import {
     Alert,
     Divider,
     CircularProgress,
-    useTheme,       // Import useTheme
-    useMediaQuery   // Import useMediaQuery
+    useTheme,
+    useMediaQuery,
+    Autocomplete
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -28,8 +29,7 @@ interface SubCourt {
     surface: string;
     status: string;
     isConfigured: boolean;
-    // Add id and nextAvailable if they are part of your actual SubCourt structure in Firestore
-    id?: number; // Or string, if it's a Firestore ID for sub-courts
+    id?: number | string;
     nextAvailable?: string;
 }
 
@@ -63,6 +63,8 @@ interface CourtFormData {
     courts: SubCourt[];
     description: string;
     images: Array<{ file: File; preview: string }>;
+    latitude?: number;
+    longitude?: number;
 }
 
 const initialFormData: CourtFormData = {
@@ -74,7 +76,7 @@ const initialFormData: CourtFormData = {
     hours: '',
     amenities: [],
     courts: [{
-        id: Date.now(), // Example temporary ID, adjust if you have a different scheme
+        id: Date.now(),
         name: '',
         surface: '',
         status: 'available',
@@ -82,8 +84,12 @@ const initialFormData: CourtFormData = {
         nextAvailable: ''
     }],
     description: '',
-    images: []
+    images: [],
+    latitude: undefined,
+    longitude: undefined
 };
+
+const NOMINATIM_API_URL = 'https://nominatim.openstreetmap.org/search';
 
 export default function AddCourt({ open, onClose }: AddCourtProps) {
     const [formData, setFormData] = useState<CourtFormData>(initialFormData);
@@ -92,6 +98,10 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
+    const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+    const [autocompleteLoading, setAutocompleteLoading] = useState(false);
+    const [inputValue, setInputValue] = useState('');
+    const [selectedAddressOption, setSelectedAddressOption] = useState<any | null>(null);
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -100,6 +110,61 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
     const contactInfoRef = useRef<HTMLDivElement>(null);
     const courtsRef = useRef<HTMLDivElement>(null);
     const descriptionRef = useRef<HTMLDivElement>(null);
+
+    const debounce = <T extends Function>(func: T, delay: number): T => {
+        let timeout: ReturnType<typeof setTimeout>;
+        return ((...args: any[]) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func(...args), delay);
+        }) as any;
+    };
+
+    const fetchSuggestions = useCallback(debounce(async (query: string) => {
+        if (query.length < 2) {
+            setAddressSuggestions([]);
+            setAutocompleteLoading(false);
+            return;
+        }
+
+        setAutocompleteLoading(true);
+        try {
+            const response = await fetch(
+                `${NOMINATIM_API_URL}?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`,
+                {
+                    headers: {
+                        'User-Agent': 'VacantCourtApp/1.0 (your-email@example.com)'
+                    }
+                }
+            );
+            const data = await response.json();
+            setAddressSuggestions(data);
+        } catch (err) {
+            console.error('Error fetching address suggestions:', err);
+            setAddressSuggestions([]);
+        } finally {
+            setAutocompleteLoading(false);
+        }
+    }, 500), []);
+
+    useEffect(() => {
+        if (open && inputValue) {
+            fetchSuggestions(inputValue);
+        } else if (!inputValue) {
+            setAddressSuggestions([]);
+        }
+    }, [inputValue, open, fetchSuggestions]);
+
+    useEffect(() => {
+        if (open) {
+            setFormData(initialFormData);
+            setAmenity('');
+            setErrors({});
+            setAddressSuggestions([]);
+            setAutocompleteLoading(false);
+            setInputValue('');
+            setSelectedAddressOption(null);
+        }
+    }, [open]);
 
     const validateForm = () => {
         const newErrors: FormErrors = {};
@@ -114,34 +179,21 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
             hasErrors = true;
         }
 
-        if (!formData.address.trim()) {
+        if (!formData.address.trim() || !selectedAddressOption) {
             if (!firstErrorRef) firstErrorRef = contactInfoRef;
-            newErrors.address = 'Facility address is required';
+            newErrors.address = 'Facility address is required and must be selected from suggestions';
             hasErrors = true;
         }
 
         const courtErrors: CourtError[] = [];
         let hasCourtErrors = false;
-
         formData.courts.forEach((court, index) => {
             const courtError: CourtError = {};
-            if (!court.name.trim()) {
-                if (!firstErrorRef) firstErrorRef = courtsRef;
-                courtError.name = 'Court name is required';
-                hasCourtErrors = true;
-            }
-            if (!court.surface.trim()) {
-                if (!firstErrorRef) firstErrorRef = courtsRef;
-                courtError.surface = 'Surface type is required';
-                hasCourtErrors = true;
-            }
+            if (!court.name.trim()) { if (!firstErrorRef) firstErrorRef = courtsRef; courtError.name = 'Court name is required'; hasCourtErrors = true; }
+            if (!court.surface.trim()) { if (!firstErrorRef) firstErrorRef = courtsRef; courtError.surface = 'Surface type is required'; hasCourtErrors = true; }
             courtErrors[index] = courtError;
         });
-
-        if (hasCourtErrors) {
-            newErrors.courts = courtErrors;
-            hasErrors = true;
-        }
+        if (hasCourtErrors) { newErrors.courts = courtErrors; hasErrors = true; }
 
         if (!formData.description.trim()) {
             if (!firstErrorRef) firstErrorRef = descriptionRef;
@@ -151,10 +203,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
 
         setErrors(newErrors);
         if (firstErrorRef?.current) {
-            firstErrorRef.current.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+            firstErrorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         return !hasErrors;
     };
@@ -167,27 +216,31 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
         try {
             const uploadedUrls: string[] = [];
             for (const image of formData.images) {
-                 const url = await uploadImage(
+                const url = await uploadImage(
                     image.file,
                     formData.name,
-                    (progress) => {
-                        setUploadProgress(prev => ({ ...prev, [image.preview]: progress.progress }));
-                    }
+                    (progress) => { setUploadProgress(prev => ({ ...prev, [image.preview]: progress.progress })); }
                 );
                 uploadedUrls.push(url);
                 URL.revokeObjectURL(image.preview);
             }
 
+            const courtsToSave = formData.courts.map(c => ({
+                ...c,
+                id: typeof c.id === 'string' ? parseInt(c.id) : c.id || Date.now()
+            }));
+
+
             await createDocument('Courts', {
                 ...formData,
-                courts: formData.courts.map(c => ({...c, id: c.id || Date.now() })), // Ensure ID for subcourts if needed
+                courts: courtsToSave,
                 images: uploadedUrls,
+                latitude: selectedAddressOption?.lat ? parseFloat(selectedAddressOption.lat) : undefined,
+                longitude: selectedAddressOption?.lon ? parseFloat(selectedAddressOption.lon) : undefined,
             });
 
             toast.success('Facility added successfully!');
             onClose();
-            setFormData(initialFormData); // Reset form
-            setUploadProgress({});
         } catch (error) {
             console.error('Error adding facility:', error);
             toast.error('Failed to add facility. Please try again.');
@@ -198,10 +251,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
 
     const handleImageAdd = (file: File) => {
         const preview = URL.createObjectURL(file);
-        setFormData({
-            ...formData,
-            images: [...formData.images, { file, preview }]
-        });
+        setFormData({ ...formData, images: [...formData.images, { file, preview }] });
     };
 
     const handleAddAmenity = () => {
@@ -215,7 +265,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
         setFormData({
             ...formData,
             courts: [...formData.courts, {
-                id: Date.now(), // Example temporary ID
+                id: Date.now(),
                 name: '',
                 surface: '',
                 status: 'available',
@@ -233,20 +283,12 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
     const renderCourts = () => {
         return formData.courts.map((court, index) => (
             <Box
-                key={court.id || index} // Use a stable key if available
+                key={court.id || index}
                 sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' }, // Responsive direction
-                    gap: 2,
-                    mb: 2,
-                    p: 2,
-                    bgcolor: 'grey.50',
-                    borderRadius: 1,
-                    alignItems: { sm: 'center' } // Align items nicely on larger screens
+                    display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1, alignItems: { sm: 'center' }
                 }}
             >
-                <TextField
-                    autoComplete='off' required size="small" label="Court Name/Number"
+                <TextField autoComplete='off' required size="small" label="Court Name/Number"
                     placeholder="e.g. Court 1" value={court.name}
                     onChange={(e) => {
                         const newCourts = [...formData.courts];
@@ -255,8 +297,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                     }}
                     error={!!(errors.courts?.[index]?.name)} helperText={errors.courts?.[index]?.name} fullWidth
                 />
-                <TextField
-                    autoComplete='off' required size="small" label="Surface Type"
+                <TextField autoComplete='off' required size="small" label="Surface Type"
                     placeholder="e.g. Hard, Clay" value={court.surface}
                     onChange={(e) => {
                         const newCourts = [...formData.courts];
@@ -265,12 +306,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                     }}
                     error={!!(errors.courts?.[index]?.surface)} helperText={errors.courts?.[index]?.surface} fullWidth
                 />
-                <IconButton
-                    onClick={() => handleRemoveCourt(index)}
-                    disabled={formData.courts.length === 1}
-                    color="error"
-                    sx={{ alignSelf: { xs: 'flex-end', sm: 'center' } }} // Adjust alignment
-                >
+                <IconButton onClick={() => handleRemoveCourt(index)} disabled={formData.courts.length === 1} color="error" sx={{ alignSelf: { xs: 'flex-end', sm: 'center' } }}>
                     <DeleteIcon />
                 </IconButton>
             </Box>
@@ -278,26 +314,9 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
     };
 
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            maxWidth="md"
-            fullWidth
-            fullScreen={isMobile} // Make dialog full screen on mobile
-            PaperProps={{ sx: { borderRadius: isMobile ? 0 : 2, bgcolor: 'background.paper' } }}
-        >
-            <DialogTitle sx={{ bgcolor: '#1e3a8a', color: 'white', py: 2, px: { xs: 2, sm: 3 } }}>
-                Add New Sports Facility
-            </DialogTitle>
-            <DialogContent
-                sx={{
-                    p: { xs: 2, sm: 3 }, // Responsive padding
-                    // Custom scrollbar styles (optional, check if they cause issues on mobile)
-                    '&::-webkit-scrollbar': { width: '8px' },
-                    '&::-webkit-scrollbar-track': { background: '#f1f1f1', borderRadius: '4px' },
-                    '&::-webkit-scrollbar-thumb': { background: '#c1c1c1', borderRadius: '4px', '&:hover': { background: '#a1a1a1' } },
-                }}
-            >
+        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth fullScreen={isMobile} PaperProps={{ sx: { borderRadius: isMobile ? 0 : 2, bgcolor: 'background.paper' } }}>
+            <DialogTitle sx={{ bgcolor: '#1e3a8a', color: 'white', py: 2, px: { xs: 2, sm: 3 } }}>Add New Sports Facility</DialogTitle>
+            <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
                 <Alert severity="warning" sx={{ mb: 3, borderRadius: 2, '& .MuiAlert-icon': { color: 'warning.dark' } }}>
                     Note: The facility will not be visible until configured with our hardware system.
                 </Alert>
@@ -306,19 +325,16 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                         <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Information</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Enter general information</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            <TextField
-                                autoComplete='off' required label="Facility Name" placeholder="e.g. Downtown Tennis Center"
+                            <TextField autoComplete='off' required label="Facility Name" placeholder="e.g. Downtown Tennis Center"
                                 value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 error={!!errors.name} helperText={errors.name}
                             />
-                            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}> {/* Responsive */}
-                                <TextField
-                                    autoComplete='off' required label="Sport Type" placeholder="e.g. Tennis"
+                            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+                                <TextField autoComplete='off' required label="Sport Type" placeholder="e.g. Tennis"
                                     value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                                     error={!!errors.type} helperText={errors.type} fullWidth
                                 />
-                                <TextField
-                                    autoComplete='off' required label="Location Area" placeholder="e.g. Downtown"
+                                <TextField autoComplete='off' required label="Location Area" placeholder="e.g. Downtown"
                                     value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                     error={!!errors.location} helperText={errors.location} fullWidth
                                 />
@@ -330,18 +346,59 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                         <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Contact Details</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Facility contact information</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            <TextField
-                                autoComplete='off' required label="Facility Address" placeholder="Complete street address"
-                                value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                error={!!errors.address} helperText={errors.address}
+                            <Autocomplete
+                                fullWidth
+                                options={addressSuggestions}
+                                getOptionLabel={(option) => option.display_name || ''}
+                                filterOptions={(x) => x}
+                                loading={autocompleteLoading}
+                                inputValue={inputValue}
+                                onInputChange={(event, newInputValue) => {
+                                    setInputValue(newInputValue);
+                                    if (selectedAddressOption && selectedAddressOption.display_name !== newInputValue) {
+                                        setSelectedAddressOption(null);
+                                        setFormData(prev => ({ ...prev, address: newInputValue, latitude: undefined, longitude: undefined }));
+                                    }
+                                }}
+                                value={selectedAddressOption}
+                                onChange={(event, newValue) => {
+                                    setSelectedAddressOption(newValue);
+                                    if (newValue) {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            address: newValue.display_name,
+                                            latitude: parseFloat(newValue.lat),
+                                            longitude: parseFloat(newValue.lon)
+                                        }));
+                                    } else {
+                                        setFormData(prev => ({ ...prev, address: '', latitude: undefined, longitude: undefined }));
+                                    }
+                                }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        required
+                                        label="Facility Address"
+                                        placeholder="Complete street address"
+                                        error={!!errors.address}
+                                        helperText={errors.address}
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            endAdornment: (
+                                                <>
+                                                    {autocompleteLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                    {params.InputProps.endAdornment}
+                                                </>
+                                            ),
+                                        }}
+                                    />
+                                )}
                             />
-                            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}> {/* Responsive */}
-                                <TextField
-                                    autoComplete='off' label="Contact Phone" placeholder="(555) 123-4567"
+                            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+                                <TextField autoComplete='off' label="Contact Phone" placeholder="(555) 123-4567"
                                     value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} fullWidth
                                 />
-                                <TextField
-                                    autoComplete='off' label="Operating Hours" placeholder="6 AM - 10 PM"
+                                <TextField autoComplete='off' label="Operating Hours" placeholder="6 AM - 10 PM"
                                     value={formData.hours} onChange={(e) => setFormData({ ...formData, hours: e.target.value })} fullWidth
                                 />
                             </Box>
@@ -351,12 +408,11 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                     <Box>
                         <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Amenities</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>List available amenities</Typography>
-                        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mb: 2, alignItems: { sm: 'center' } }}> {/* Responsive */}
-                            <TextField
-                                autoComplete='off' size="small" value={amenity} onChange={(e) => setAmenity(e.target.value)}
+                        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mb: 2, alignItems: { sm: 'center' } }}>
+                            <TextField autoComplete='off' size="small" value={amenity} onChange={(e) => setAmenity(e.target.value)}
                                 placeholder="Enter an amenity" fullWidth
                             />
-                            <Button onClick={handleAddAmenity} variant="contained" size="small" sx={{ minWidth: '100px', width: { xs: '100%', sm: 'auto'}, bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#1e3a8a', opacity: 0.9 } }}>Add</Button>
+                            <Button onClick={handleAddAmenity} variant="contained" size="small" sx={{ minWidth: '100px', width: { xs: '100%', sm: 'auto' }, bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#1e3a8a', opacity: 0.9 } }}>Add</Button>
                         </Box>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                             {formData.amenities.map((item, index) => (
@@ -379,8 +435,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                     <Box ref={descriptionRef}>
                         <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Description</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Detailed description</Typography>
-                        <TextField
-                            autoComplete='off' required multiline rows={4} placeholder="Describe your facility..."
+                        <TextField autoComplete='off' required multiline rows={4} placeholder="Describe your facility..."
                             value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             error={!!errors.description} helperText={errors.description} fullWidth
                         />
@@ -389,30 +444,17 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                     <Box>
                         <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Images</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Add images (recommended)</Typography>
-                        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 2 }}> {/* Adjusted gap */}
+                        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
                             {formData.images.map((image, index) => (
-                                <Box
-                                    key={index}
-                                    sx={{
-                                        position: 'relative',
-                                        width: { xs: 'calc(50% - 6px)', sm: 150 }, // Responsive width, 2 per row on mobile
-                                        height: { xs: 120, sm: 150 },              // Responsive height
-                                        borderRadius: 1, overflow: 'hidden', border: '1px solid #ddd',
-                                    }}
-                                >
-                                     {uploadProgress[image.preview] !== undefined && uploadProgress[image.preview] < 100 && (
-                                        <Box sx={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(255,255,255,0.7)'}}>
-                                             <CircularProgress variant="determinate" value={uploadProgress[image.preview]} size={40} />
+                                <Box key={index} sx={{ position: 'relative', width: { xs: 'calc(50% - 6px)', sm: 150 }, height: { xs: 120, sm: 150 }, borderRadius: 1, overflow: 'hidden', border: '1px solid #ddd', }}>
+                                    {uploadProgress[image.preview] !== undefined && uploadProgress[image.preview] < 100 && (
+                                        <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(255,255,255,0.7)' }}>
+                                            <CircularProgress variant="determinate" value={uploadProgress[image.preview]} size={40} />
                                         </Box>
                                     )}
                                     <img src={image.preview} alt={`Facility ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                                     {!isSubmitting && (
-                                        <IconButton
-                                            onClick={() => {
-                                                URL.revokeObjectURL(image.preview);
-                                                const newImages = formData.images.filter((_, i) => i !== index);
-                                                setFormData({ ...formData, images: newImages });
-                                            }}
+                                        <IconButton onClick={() => { URL.revokeObjectURL(image.preview); const newImages = formData.images.filter((_, i) => i !== index); setFormData({ ...formData, images: newImages }); }}
                                             sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'rgba(0,0,0,0.5)', '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }, p: 0.5 }}
                                         >
                                             <DeleteIcon sx={{ color: 'white', fontSize: '1rem' }} />
@@ -421,34 +463,23 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                                 </Box>
                             ))}
                             {formData.images.length < 5 && !isSubmitting && (
-                                <Box
-                                    component="label"
-                                    sx={{
-                                        width: { xs: 'calc(50% - 6px)', sm: 150 }, // Responsive width
-                                        height: { xs: 120, sm: 150 },             // Responsive height
-                                        border: '2px dashed #ccc', borderRadius: 1, display: 'flex', alignItems: 'center',
-                                        justifyContent: 'center', flexDirection: 'column', cursor: 'pointer',
-                                        '&:hover': { borderColor: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.04)' }
-                                    }}
-                                >
-                                    <input type="file" hidden accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { handleImageAdd(file); e.target.value = '';}}} />
-                                        <>
-                                            <AddPhotoAlternateIcon sx={{ fontSize: {xs: 30, sm: 40}, color: '#666', mb: 1 }} />
-                                            <Typography variant="body2" color="text.secondary" sx={{textAlign: 'center', fontSize: {xs: '0.75rem', sm: '0.875rem'}}} >Add Image</Typography>
-                                            <Typography variant="caption" color="text.secondary" sx={{fontSize: {xs: '0.6rem', sm: '0.75rem'}}}>(Max 5)</Typography>
-                                        </>
+                                <Box component="label" sx={{ width: { xs: 'calc(50% - 6px)', sm: 150 }, height: { xs: 120, sm: 150 }, border: '2px dashed #ccc', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', cursor: 'pointer', '&:hover': { borderColor: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.04)' } }}>
+                                    <input type="file" hidden accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { handleImageAdd(file); e.target.value = ''; } }} />
+                                    <AddPhotoAlternateIcon sx={{ fontSize: { xs: 30, sm: 40 }, color: '#666', mb: 1 }} />
+                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', fontSize: { xs: '0.75rem', sm: '0.875rem' } }} >Add Image</Typography>
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>(Max 5)</Typography>
                                 </Box>
                             )}
                         </Box>
                     </Box>
                 </Box>
             </DialogContent>
-            <DialogActions sx={{ p: { xs: 2, sm: 3 }, bgcolor: 'grey.50', flexDirection: {xs: 'column-reverse', sm: 'row'}, gap: {xs: 1, sm: 0} }}>
+            <DialogActions sx={{ p: { xs: 2, sm: 3 }, bgcolor: 'grey.50', flexDirection: { xs: 'column-reverse', sm: 'row' }, gap: { xs: 1, sm: 0 } }}>
                 <Button onClick={onClose} variant="outlined" disabled={isSubmitting}
-                    sx={{ mr: {sm: 1}, width: {xs: '100%', sm: 'auto'}, borderColor: '#1e3a8a', color: '#1e3a8a', '&:hover': { borderColor: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.04)' } }}
+                    sx={{ mr: { sm: 1 }, width: { xs: '100%', sm: 'auto' }, borderColor: '#1e3a8a', color: '#1e3a8a', '&:hover': { borderColor: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.04)' } }}
                 >Cancel</Button>
                 <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting}
-                    sx={{ px: 4, width: {xs: '100%', sm: 'auto'}, bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#1e3a8a', opacity: 0.9 } }}
+                    sx={{ px: 4, width: { xs: '100%', sm: 'auto' }, bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#1e3a8a', opacity: 0.9 } }}
                 >{isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Add Facility'}</Button>
             </DialogActions>
         </Dialog>

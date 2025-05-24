@@ -49,15 +49,15 @@
     border-left-color: #28a745;
 }
 .court-status-text.available {
-    background-color: #e9f5ea;
-    color: #28a745;
+    background-color: #d1e7dd;
+    color: #0f5132;
 }
 
 .court-item.in-use {
     border-left-color: #dc3545;
 }
 .court-status-text.in-use {
-    background-color: #fbe9eb;
+    background-color: #f8d7da;
     color: #dc3545;
 }
 

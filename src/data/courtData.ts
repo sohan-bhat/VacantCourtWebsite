@@ -26,6 +26,8 @@ export interface Court {
     courts: SubCourt[];
     description: string;
     images: string[];
+    latitude?: number;
+    longitude?: number;
 }
 
 export interface CourtCardSummary {
@@ -36,6 +38,9 @@ export interface CourtCardSummary {
     total: number;
     location: string;
     isConfigured: boolean;
+    latitude?: number;
+    longitude?: number;
+    address: string;
 }
 
 export const subscribeToCourtsSummary = (
@@ -64,6 +69,9 @@ export const subscribeToCourtsSummary = (
                     total: configuredCourts.length,
                     location: courtDoc.location,
                     isConfigured: true,
+                    latitude: courtDoc.latitude,
+                    longitude: courtDoc.longitude,
+                    address: courtDoc.address,
                 };
             });
             onUpdate(summaries);

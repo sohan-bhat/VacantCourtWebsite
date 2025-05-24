@@ -16,7 +16,7 @@ interface CourtScheduleProps {
 function CourtSchedule({ courts }: CourtScheduleProps) {
     return (
         <div className="courts-list">
-            {courts.map(court => {
+            {courts.map((court, key) => {
                 let displayStatusText = '';
                 let statusClassName = '';
 
@@ -44,7 +44,7 @@ function CourtSchedule({ courts }: CourtScheduleProps) {
                 }
 
                 return (
-                    <div key={court.id} className={`court-item ${statusClassName}`}>
+                    <div key={key} className={`court-item ${statusClassName}`}>
                         <div className="court-item-info">
                             <h4>{court.name}</h4>
                             {court.surface ? <p className="court-surface">{court.surface} court</p> : null}

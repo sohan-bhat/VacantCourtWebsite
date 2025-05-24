@@ -15,7 +15,7 @@ function CourtDetails() {
     const [activeTab, setActiveTab] = useState<'info' | 'availability'>('info');
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-    const [editModalOpen, setEditModalOpen] = useState(false); // State for edit modal
+    const [editModalOpen, setEditModalOpen] = useState(false);
 
     useEffect(() => {
         if (!id) {
@@ -160,30 +160,30 @@ function CourtDetails() {
                             }
 
                             <div className="court-metadata">
-                                {courtDetails.location ? // <-- ADDED LOCATION AREA HERE
+                                {courtDetails.location ?
                                     <div className="metadata-item">
-                                        <span className="metadata-label">Location Area:</span>
+                                        <span className="metadata-label"><u>Location Area:</u></span>
                                         <span>{courtDetails.location}</span>
                                     </div>
                                     : null
                                 }
                                 {courtDetails.address ?
                                     <div className="metadata-item">
-                                        <span className="metadata-label">Address:</span>
+                                        <span className="metadata-label"><u>Address:</u></span>
                                         <span>{courtDetails.address}</span>
                                     </div>
                                     : null
                                 }
                                 {courtDetails.phone ?
                                     <div className="metadata-item">
-                                        <span className="metadata-label">Phone:</span>
+                                        <span className="metadata-label"><u>Phone:</u></span>
                                         <span>{courtDetails.phone}</span>
                                     </div>
                                     : null
                                 }
                                 {courtDetails.hours ?
                                     <div className="metadata-item">
-                                        <span className="metadata-label">Hours:</span>
+                                        <span className="metadata-label"><u>Hours:</u></span>
                                         <span>{courtDetails.hours}</span>
                                     </div>
                                     : null

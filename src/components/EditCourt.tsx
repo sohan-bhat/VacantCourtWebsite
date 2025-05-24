@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Button,
     Dialog,
@@ -13,8 +13,9 @@ import {
     Alert,
     Divider,
     CircularProgress,
-    useTheme,       // Import useTheme
-    useMediaQuery   // Import useMediaQuery
+    useTheme,
+    useMediaQuery,
+    Autocomplete
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -45,7 +46,6 @@ interface EditCourtProps {
 }
 
 interface EditableSubCourt extends SubCourt {
-    // Ensure all fields from Court['courts'][number] are here
 }
 
 interface CourtFormData {
@@ -58,7 +58,11 @@ interface CourtFormData {
     amenities: string[];
     courts: EditableSubCourt[];
     description: string;
+    latitude?: number;
+    longitude?: number;
 }
+
+const NOMINATIM_API_URL = 'https://nominatim.openstreetmap.org/search';
 
 export default function EditCourt({ open, onClose, court }: EditCourtProps) {
     const [formData, setFormData] = useState<CourtFormData | null>(null);
@@ -68,8 +72,13 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
 
     const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
     const [newImagesToUpload, setNewImagesToUpload] = useState<Array<{ file: File; preview: string }>>([]);
-    const [imageUrlsToDelete, setImageUrlsToDelete] = useState<string[]>([]); // For future use if Cloudinary delete is implemented
+    const [imageUrlsToDelete, setImageUrlsToDelete] = useState<string[]>([]);
     const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+
+    const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+    const [autocompleteLoading, setAutocompleteLoading] = useState(false);
+    const [inputValue, setInputValue] = useState('');
+    const [selectedAddressOption, setSelectedAddressOption] = useState<any | null>(null);
 
 
     const theme = useTheme();
@@ -79,6 +88,49 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
     const contactInfoRef = useRef<HTMLDivElement>(null);
     const courtsRef = useRef<HTMLDivElement>(null);
     const descriptionRef = useRef<HTMLDivElement>(null);
+
+    const debounce = <T extends Function>(func: T, delay: number): T => {
+        let timeout: ReturnType<typeof setTimeout>;
+        return ((...args: any[]) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func(...args), delay);
+        }) as any;
+    };
+
+    const fetchSuggestions = useCallback(debounce(async (query: string) => {
+        if (query.length < 3) {
+            setAddressSuggestions([]);
+            setAutocompleteLoading(false);
+            return;
+        }
+        setAutocompleteLoading(true);
+        try {
+            const response = await fetch(
+                `${NOMINATIM_API_URL}?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`,
+                {
+                    headers: {
+                        'User-Agent': 'VacantCourtApp/1.0 (your-email@example.com)'
+                    }
+                }
+            );
+            const data = await response.json();
+            setAddressSuggestions(data);
+        } catch (err) {
+            console.error('Error fetching address suggestions:', err);
+            setAddressSuggestions([]);
+        } finally {
+            setAutocompleteLoading(false);
+        }
+    }, 500), []);
+
+    useEffect(() => {
+        if (open && inputValue && selectedAddressOption?.display_name !== inputValue) {
+            fetchSuggestions(inputValue);
+        } else if (!inputValue) {
+            setAddressSuggestions([]);
+        }
+    }, [inputValue, open, fetchSuggestions, selectedAddressOption]);
+
 
     useEffect(() => {
         if (court && open) {
@@ -92,14 +144,37 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                 amenities: court.amenities || [],
                 courts: court.courts.map(sc => ({ ...sc })),
                 description: court.description,
+                latitude: court.latitude,
+                longitude: court.longitude
             });
             setExistingImageUrls(court.images || []);
             setNewImagesToUpload([]);
             setImageUrlsToDelete([]);
             setErrors({});
             setUploadProgress({});
-        } else if (!open) { // Reset when dialog closes
+
+            if (court.address) {
+                setInputValue(court.address);
+                if (court.latitude && court.longitude) {
+                    setSelectedAddressOption({
+                        display_name: court.address,
+                        lat: court.latitude.toString(),
+                        lon: court.longitude.toString()
+                    });
+                } else {
+                    setSelectedAddressOption(null);
+                }
+            } else {
+                setInputValue('');
+                setSelectedAddressOption(null);
+            }
+
+        } else if (!open) {
             setFormData(null);
+            setAddressSuggestions([]);
+            setAutocompleteLoading(false);
+            setInputValue('');
+            setSelectedAddressOption(null);
         }
     }, [court, open]);
 
@@ -116,10 +191,12 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
             if (!formData.location.trim()) newErrors.location = 'Facility location is required';
             hasErrors = true;
         }
-        if (!formData.address.trim()) {
+        if (!formData.address.trim() || (!selectedAddressOption && (!formData.latitude || !formData.longitude))) {
             if (!firstErrorRef) firstErrorRef = contactInfoRef;
-            newErrors.address = 'Facility address is required'; hasErrors = true;
+            newErrors.address = 'Facility address is required and must be selected from suggestions';
+            hasErrors = true;
         }
+
         const courtErrors: CourtError[] = [];
         let hasCourtErrors = false;
         formData.courts.forEach((c, index) => {
@@ -141,13 +218,15 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
     };
 
     const handleInputChange = (field: keyof CourtFormData, value: any) => {
-        if (formData) setFormData({ ...formData, [field]: value });
+        if (formData) {
+            setFormData({ ...formData, [field]: value });
+        }
     };
 
     const handleSubCourtChange = (index: number, field: keyof EditableSubCourt, value: string) => {
         if (formData) {
             const newCourts = [...formData.courts];
-            (newCourts[index] as any)[field] = value; // Type assertion for dynamic field update
+            (newCourts[index] as any)[field] = value;
             setFormData({ ...formData, courts: newCourts });
         }
     };
@@ -195,7 +274,7 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
 
     const handleDeleteExistingImage = (imageUrl: string) => {
         setExistingImageUrls(prev => prev.filter(url => url !== imageUrl));
-        setImageUrlsToDelete(prev => [...prev, imageUrl]); // Track for potential Cloudinary deletion
+        setImageUrlsToDelete(prev => [...prev, imageUrl]);
     };
 
     const handleSubmit = async () => {
@@ -208,19 +287,27 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
             for (const image of newImagesToUpload) {
                 const url = await uploadImage(
                     image.file, formData.name,
-                    (progress) => {
-                        setUploadProgress(prev => ({ ...prev, [image.preview]: progress.progress }));
-                    }
+                    (progress) => { setUploadProgress(prev => ({ ...prev, [image.preview]: progress.progress })); }
                 );
                 uploadedNewImageUrls.push(url);
                 URL.revokeObjectURL(image.preview);
             }
 
             const finalImageUrls = [...existingImageUrls, ...uploadedNewImageUrls];
-            // For actual deletion from Cloudinary, you'd call a delete function here for `imageUrlsToDelete`
-            // This requires backend or signed requests. For now, we just remove from Firestore.
 
-            const updatedCourtData = { ...formData, images: finalImageUrls };
+            const courtsToSave = formData.courts.map(c => ({
+                ...c,
+                id: typeof c.id === 'string' ? parseInt(c.id) : c.id || Date.now()
+            }));
+
+
+            const updatedCourtData = {
+                ...formData,
+                courts: courtsToSave,
+                images: finalImageUrls,
+                latitude: selectedAddressOption?.lat ? parseFloat(selectedAddressOption.lat) : undefined,
+                longitude: selectedAddressOption?.lon ? parseFloat(selectedAddressOption.lon) : undefined,
+            };
             await updateDocument('Courts', court.id, updatedCourtData);
 
             toast.success('Facility updated successfully!');
@@ -239,7 +326,7 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
     return (
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth fullScreen={isMobile} PaperProps={{ sx: { borderRadius: isMobile ? 0 : 2 } }}>
             <DialogTitle sx={{ bgcolor: '#1e3a8a', color: 'white', py: 2, px: { xs: 2, sm: 3 } }}>Edit Sports Facility</DialogTitle>
-            <DialogContent sx={{ p: { xs: 2, sm: 3 } /* scrollbar styles if needed */ }}>
+            <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
                 <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
                     You are editing details for: <strong>{court?.name}</strong>. Status of individual courts is managed elsewhere.
                 </Alert>
@@ -257,8 +344,56 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                     <Divider />
                     <Box ref={contactInfoRef}>
                         <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Contact Details</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Facility contact information</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            <TextField required label="Facility Address" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} error={!!errors.address} helperText={errors.address} />
+                            <Autocomplete
+                                fullWidth
+                                options={addressSuggestions}
+                                getOptionLabel={(option) => option.display_name || ''}
+                                filterOptions={(x) => x}
+                                loading={autocompleteLoading}
+                                inputValue={inputValue}
+                                onInputChange={(event, newInputValue) => {
+                                    setInputValue(newInputValue);
+                                    if (selectedAddressOption && selectedAddressOption.display_name !== newInputValue) {
+                                        setSelectedAddressOption(null);
+                                        setFormData(prev => ({ ...prev!, address: newInputValue, latitude: undefined, longitude: undefined }));
+                                    }
+                                }}
+                                value={selectedAddressOption}
+                                onChange={(event, newValue) => {
+                                    setSelectedAddressOption(newValue);
+                                    if (newValue) {
+                                        setFormData(prev => ({
+                                            ...prev!,
+                                            address: newValue.display_name,
+                                            latitude: parseFloat(newValue.lat),
+                                            longitude: parseFloat(newValue.lon)
+                                        }));
+                                    } else {
+                                        setFormData(prev => ({ ...prev!, address: '', latitude: undefined, longitude: undefined }));
+                                    }
+                                }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        required
+                                        label="Facility Address"
+                                        placeholder="Complete street address"
+                                        error={!!errors.address}
+                                        helperText={errors.address}
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            endAdornment: (
+                                                <>
+                                                    {autocompleteLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                    {params.InputProps.endAdornment}
+                                                </>
+                                            ),
+                                        }}
+                                    />
+                                )}
+                            />
                             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
                                 <TextField label="Contact Phone" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} fullWidth />
                                 <TextField label="Operating Hours" value={formData.hours} onChange={(e) => handleInputChange('hours', e.target.value)} fullWidth />
@@ -284,169 +419,26 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                             Note: Court statuses ('available', 'in-use') are updated live and not edited here.
                         </Typography>
-                        <Box ref={courtsRef}>
-                            <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Individual Courts</Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                Manage the individual courts within this facility.
-                            </Typography>
-                            <Box sx={{ mb: 2 }}>
-                                {formData.courts.map((subCourt, index) => {
-                                    let statusChip;
-
-                                    if (!subCourt.isConfigured) {
-                                        statusChip = (
-                                            <Chip
-                                                label="Not Configured"
-                                                size="small"
-                                                sx={{
-                                                    backgroundColor: '#fff3e0', // Light orange
-                                                    color: '#e65100',           // Dark orange text
-                                                    fontWeight: 'medium',
-                                                    width: '100%', // Make chip take available width in its container
-                                                    maxWidth: '130px' // Max width for the chip
-                                                }}
-                                            />
-                                        );
-                                    } else {
-                                        switch (subCourt.status) {
-                                            case 'available':
-                                                statusChip = (
-                                                    <Chip
-                                                        label="Available"
-                                                        size="small"
-                                                        sx={{
-                                                            backgroundColor: 'success.light', // MUI theme green.light
-                                                            color: 'success.dark',           // MUI theme green.dark
-                                                            fontWeight: 'medium',
-                                                            width: '100%',
-                                                            maxWidth: '130px'
-                                                        }}
-                                                    />
-                                                );
-                                                break;
-                                            case 'in-use':
-                                                statusChip = (
-                                                    <Chip
-                                                        label="In Use"
-                                                        size="small"
-                                                        sx={{
-                                                            backgroundColor: 'error.light', // MUI theme red.light
-                                                            color: 'error.dark',           // MUI theme red.dark
-                                                            fontWeight: 'medium',
-                                                            width: '100%',
-                                                            maxWidth: '130px'
-                                                        }}
-                                                    />
-                                                );
-                                                break;
-                                            case 'maintenance':
-                                                statusChip = (
-                                                    <Chip
-                                                        label="Maintenance"
-                                                        size="small"
-                                                        sx={{
-                                                            backgroundColor: 'warning.light', // MUI theme amber.light
-                                                            color: 'warning.dark',           // MUI theme amber.dark
-                                                            fontWeight: 'medium',
-                                                            width: '100%',
-                                                            maxWidth: '130px'
-                                                        }}
-                                                    />
-                                                );
-                                                break;
-                                            default:
-                                                statusChip = (
-                                                    <Chip
-                                                        label="Unknown"
-                                                        size="small"
-                                                        sx={{
-                                                            backgroundColor: 'grey.300',
-                                                            color: 'grey.700',
-                                                            fontWeight: 'medium',
-                                                            width: '100%',
-                                                            maxWidth: '130px'
-                                                        }}
-                                                    />
-                                                );
-                                        }
-                                    }
-
-                                    return (
-                                        <Box
-                                            key={subCourt.id || index}
-                                            sx={{
-                                                display: 'flex',
-                                                flexDirection: { xs: 'column', sm: 'row' },
-                                                gap: 2,
-                                                mb: 2,
-                                                p: 2,
-                                                bgcolor: 'grey.50',
-                                                borderRadius: 1,
-                                                alignItems: { sm: 'center' }
-                                            }}
-                                        >
-                                            <TextField
-                                                required
-                                                size="small"
-                                                label="Court Name/Number"
-                                                value={subCourt.name}
-                                                onChange={(e) => handleSubCourtChange(index, 'name', e.target.value)}
-                                                error={!!(errors.courts?.[index]?.name)}
-                                                helperText={errors.courts?.[index]?.name}
-                                                fullWidth
-                                            />
-                                            <TextField
-                                                required
-                                                size="small"
-                                                label="Surface Type"
-                                                value={subCourt.surface}
-                                                onChange={(e) => handleSubCourtChange(index, 'surface', e.target.value)}
-                                                error={!!(errors.courts?.[index]?.surface)}
-                                                helperText={errors.courts?.[index]?.surface}
-                                                fullWidth
-                                            />
-                                            <Box
-                                                sx={{
-                                                    minWidth: '140px', // Ensure enough space for the chip
-                                                    textAlign: { xs: 'left', sm: 'center' },
-                                                    py: { xs: 1, sm: 0 },
-                                                    display: 'flex',
-                                                    justifyContent: { xs: 'flex-start', sm: 'center' },
-                                                    alignItems: 'center'
-                                                }}
-                                            >
-                                                {statusChip}
-                                            </Box>
-                                            <IconButton
-                                                onClick={() => handleRemoveSubCourt(index)}
-                                                disabled={formData.courts.length === 1}
-                                                color="error"
-                                                sx={{ alignSelf: { xs: 'flex-end', sm: 'center' } }}
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </Box>
-                                    );
-                                })}
-                            </Box>
-                            <Button
-                                startIcon={<AddIcon />}
-                                onClick={handleAddSubCourt}
-                                variant="outlined"
-                                size="small"
-                                sx={{
-                                    mb: 2,
-                                    borderColor: '#1e3a8a',
-                                    color: '#1e3a8a',
-                                    '&:hover': {
-                                        borderColor: '#1e3a8a',
-                                        bgcolor: 'rgba(30, 58, 138, 0.04)'
-                                    }
-                                }}
-                            >
-                                Add Another Court
-                            </Button>
+                        <Box sx={{ mb: 2 }}>
+                            {formData.courts.map((subCourt, index) => (
+                                <Box key={subCourt.id || index} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1, alignItems: { sm: 'center' } }}>
+                                    <TextField required size="small" label="Court Name/Number" value={subCourt.name} onChange={(e) => handleSubCourtChange(index, 'name', e.target.value)} error={!!(errors.courts?.[index]?.name)} helperText={errors.courts?.[index]?.name} fullWidth />
+                                    <TextField required size="small" label="Surface Type" value={subCourt.surface} onChange={(e) => handleSubCourtChange(index, 'surface', e.target.value)} error={!!(errors.courts?.[index]?.surface)} helperText={errors.courts?.[index]?.surface} fullWidth />
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '120px' }}>
+                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                            Status: {subCourt.status}
+                                        </Typography>
+                                        {!subCourt.isConfigured && (
+                                            <Chip label="Not Configured" size="small" sx={{ mt: 0.5, backgroundColor: '#fff3e0', color: '#e65100' }} />
+                                        )}
+                                    </Box>
+                                    <IconButton onClick={() => handleRemoveSubCourt(index)} disabled={formData.courts.length === 1} color="error" sx={{ alignSelf: { xs: 'flex-end', sm: 'center' } }}>
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </Box>
+                            ))}
                         </Box>
+                        <Button startIcon={<AddIcon />} onClick={handleAddSubCourt} variant="outlined" size="small" sx={{ mb: 2, borderColor: '#1e3a8a', color: '#1e3a8a' }}>Add Another Court</Button>
                     </Box>
                     <Divider />
                     <Box ref={descriptionRef}>

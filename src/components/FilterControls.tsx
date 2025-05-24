@@ -47,6 +47,7 @@ function FilterControls({ filterType, setFilterType, viewMode, setViewMode }: Fi
                 <button
                     className={viewMode === 'list' ? 'active' : ''}
                     onClick={() => setViewMode('list')}
+                    id='list-btn'
                 >
                     List
                 </button>

@@ -13,6 +13,10 @@
     gap: 8px;
 }
 
+#list-btn {
+    border: 1px solid #ccd1d9;
+}
+
 .filter-types button,
 .view-toggle button {
     padding: 8px 16px;
@@ -61,8 +65,7 @@
 .view-toggle button.active + button:not(.active) {
     border-left-color: #ccd1d9;
 }
-.view-toggle button:not(.active) + button.active {
-}
+
 .view-toggle button.active + button.active {
     border-left-color: #1e3a8a;
 }
