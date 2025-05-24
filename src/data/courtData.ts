@@ -1,13 +1,17 @@
-import { listenToQuery, getDocument as getFirestoreDocument, listenToDocument } from "../services/database/firestoreSerivce";
+import {
+    listenToQuery,
+    getDocument as getFirestoreDocument,
+    listenToDocument
+} from "../services/database/firestoreSerivce";
 import type { Unsubscribe } from 'firebase/firestore';
 
 export interface SubCourt {
-    id: number;
+    id: number | string;
     name: string;
     surface: string;
     status: 'available' | 'in-use' | 'maintenance';
-    nextAvailable: string;
     isConfigured: boolean;
+    nextAvailable: string;
 }
 
 export interface Court {
@@ -41,22 +45,23 @@ export const subscribeToCourtsSummary = (
     return listenToQuery<Court>(
         "Courts",
         (courtDocs) => {
-            const configuredDocs = courtDocs.filter(doc =>
-                Array.isArray(doc.courts) && doc.courts.every(subcourt => subcourt.isConfigured)
+            const displayableComplexes = courtDocs.filter(doc =>
+                Array.isArray(doc.courts) && doc.courts.some(subcourt => subcourt.isConfigured)
             );
 
-            const summaries = configuredDocs.map((courtDoc): CourtCardSummary => {
-                const available = Array.isArray(courtDoc.courts)
-                    ? courtDoc.courts.filter(subcourt => subcourt.status === "available").length
-                    : 0;
-                const total = Array.isArray(courtDoc.courts) ? courtDoc.courts.length : 0;
+            const summaries = displayableComplexes.map((courtDoc): CourtCardSummary => {
+                const configuredCourts = Array.isArray(courtDoc.courts)
+                    ? courtDoc.courts.filter(subcourt => subcourt.isConfigured)
+                    : [];
+
+                const availableConfigured = configuredCourts.filter(subcourt => subcourt.status === "available").length;
 
                 return {
                     id: courtDoc.id,
                     name: courtDoc.name,
                     type: courtDoc.type,
-                    available,
-                    total,
+                    available: availableConfigured,
+                    total: configuredCourts.length,
                     location: courtDoc.location,
                     isConfigured: true,
                 };
@@ -73,13 +78,7 @@ export const subscribeToCourtsSummary = (
 
 export const fetchCourtById = async (courtId: string): Promise<Court | null> => {
     const data = await getFirestoreDocument<Court>("Courts", courtId);
-    if (data) {
-        if (!Array.isArray(data.courts) || !data.courts.every(subcourt => subcourt.isConfigured)) {
-            return null;
-        }
-        return data;
-    }
-    return null;
+    return data;
 };
 
 export const subscribeToCourtById = (
@@ -87,21 +86,12 @@ export const subscribeToCourtById = (
     onUpdate: (court: Court | null) => void,
     onError: (error: Error) => void
 ): Unsubscribe => {
-    type ListenToDocumentHandler<T> = (data: T | null) => void;
-    type ErrorHandler = (error: Error) => void;
-
-        return listenToDocument<Court>(
-            "Courts",
-            courtId,
-            (courtData: Court | null): void => { 
-                if (courtData) {
-                    if (!Array.isArray(courtData.courts) || !courtData.courts.every((subcourt: SubCourt): boolean => subcourt.isConfigured)) {
-                        onUpdate(null); 
-                        return;
-                    }
-                }
-                onUpdate(courtData); 
-            },
-            onError
-        );
+    return listenToDocument<Court>(
+        "Courts",
+        courtId,
+        (courtData) => {
+            onUpdate(courtData);
+        },
+        onError
+    );
 };

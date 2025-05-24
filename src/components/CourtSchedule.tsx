@@ -1,32 +1,65 @@
 import '../styles/CourtSchedule.css';
 
-interface Court {
-    id: number;
+interface SubCourtForSchedule {
+    id: number | string;
     name: string;
     surface: string;
     status: 'available' | 'in-use' | 'maintenance';
-    nextAvailable: string;
+    isConfigured: boolean;
+    nextAvailable?: string;
 }
 
 interface CourtScheduleProps {
-    courts: Court[];
+    courts: SubCourtForSchedule[];
 }
 
 function CourtSchedule({ courts }: CourtScheduleProps) {
     return (
         <div className="courts-list">
-            {courts.map(court => (
-                <div key={court.id} className={`court-item ${court.status}`}>
-                    <div className="court-item-info">
-                        <h4>{court.name}</h4>
-                        {court.surface ? <p className="court-surface">{court.surface} court</p> : null}
-                        <p className={`court-status ${court.status}`}>
-                            {court.status === 'available' ? 'Available' :
-                                court.status === 'in-use' ? 'In Use' : 'Maintenance'}
-                        </p>
+            {courts.map(court => {
+                let displayStatusText = '';
+                let statusClassName = '';
+
+                if (!court.isConfigured) {
+                    displayStatusText = 'Not Configured';
+                    statusClassName = 'not-configured';
+                } else {
+                    switch (court.status) {
+                        case 'available':
+                            displayStatusText = 'Available';
+                            statusClassName = 'available';
+                            break;
+                        case 'in-use':
+                            displayStatusText = 'In Use';
+                            statusClassName = 'in-use';
+                            break;
+                        case 'maintenance':
+                            displayStatusText = 'Maintenance';
+                            statusClassName = 'maintenance';
+                            break;
+                        default:
+                            displayStatusText = 'Unknown';
+                            statusClassName = 'unknown';
+                    }
+                }
+
+                return (
+                    <div key={court.id} className={`court-item ${statusClassName}`}>
+                        <div className="court-item-info">
+                            <h4>{court.name}</h4>
+                            {court.surface ? <p className="court-surface">{court.surface} court</p> : null}
+                            <p className={`court-status-text ${statusClassName}`}>
+                                {displayStatusText}
+                            </p>
+                            {court.isConfigured && court.status !== 'available' && court.nextAvailable && (
+                                <p className="court-next-available">
+                                    Next available: {court.nextAvailable}
+                                </p>
+                            )}
+                        </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 }
