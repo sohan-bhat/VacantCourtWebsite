@@ -18,13 +18,15 @@ import {
     useTheme,
     useMediaQuery,
     Switch,
-    FormControlLabel
+    FormControlLabel,
+    Stack
 } from '@mui/material';
 import LocationDisabledIcon from '@mui/icons-material/LocationDisabled';
+import LocationOn from '@mui/icons-material/LocationOn'
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import { toast } from 'react-toastify';
 
-const MAX_DISTANCE_KM = 40; 
+const MAX_DISTANCE_KM = 40;
 
 function Dashboard() {
     const [courts, setCourts] = useState<CourtCardSummary[]>([]);
@@ -70,7 +72,6 @@ function Dashboard() {
                     });
                     setGeolocationStatus('granted');
                     setIsLocationFilteringEnabled(true);
-                    // toast.success('Location active! Courts sorted by proximity.');
                 },
                 (geoError) => {
                     setUserLocation(null);
@@ -159,15 +160,34 @@ function Dashboard() {
                             />
                         }
                         label={
-                            isMobile ? null :
-                            <Typography variant="body2" sx={{whiteSpace: 'nowrap'}}>Sort by Proximity</Typography>
+                            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mr: 1 }}>
+                                {isMobile ? null : <LocationOn color="success" sx={{ fontSize: '1.1rem' }} />}
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        whiteSpace: 'nowrap',
+                                        fontWeight: 500,
+                                        color: isLocationFilteringEnabled ? theme.palette.success.main : theme.palette.text.secondary,
+                                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                    }}
+                                >
+                                    Sort by Proximity
+                                </Typography>
+                            </Stack>
                         }
                         sx={{
                             mr: { xs: 0, sm: 1 },
                             ml: { xs: 1, sm: 0 },
-                            color: 'text.secondary',
-                            '& .MuiSwitch-track': {
-                                backgroundColor: isLocationFilteringEnabled ? theme.palette.success.main : theme.palette.action.disabledBackground,
+
+                            border: `1px solid ${isLocationFilteringEnabled ? theme.palette.success.light : theme.palette.grey[300]}`,
+                            borderRadius: theme.shape.borderRadius,
+                            py: 0.5,
+                            px: 1,
+                            bgcolor: isLocationFilteringEnabled ? theme.palette.success.light + '1A' : theme.palette.grey[100],
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                                cursor: 'pointer',
+                                bgcolor: isLocationFilteringEnabled ? theme.palette.success.light + '33' : theme.palette.grey[200],
                             },
                         }}
                     />
