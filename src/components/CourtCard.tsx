@@ -45,7 +45,7 @@ function CourtCard({
 
     if (!loading && displayedCourts.length === 0) {
         if (isProximityFilteringActive) {
-            noResultsMessage = `No courts found within ${maxDistanceKm} km of your location. Try adjusting your search or disabling proximity sorting.`;
+            noResultsMessage = `No courts found near you. Try adjusting your search or disabling proximity sorting.`;
         } else {
             noResultsMessage = "No courts found matching your current filters.";
         }

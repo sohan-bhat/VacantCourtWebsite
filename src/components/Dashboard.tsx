@@ -171,7 +171,7 @@ function Dashboard() {
                                         fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                     }}
                                 >
-                                    Sort by Proximity
+                                    Proximity
                                 </Typography>
                             </Stack>
                         }
