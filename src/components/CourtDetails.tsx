@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import CourtSchedule from './CourtSchedule';
 import { Court, subscribeToCourtById } from '../data/courtData';
-import EditCourt from './EditCourt'; // Import the new component
+import EditCourt from './EditCourt';
 import '../styles/CourtDetails.css';
-import { CircularProgress, IconButton, Box } from '@mui/material'; // Added IconButton, Box
-import EditIcon from '@mui/icons-material/Edit'; // Import EditIcon
+import { CircularProgress, IconButton, Box } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 
 function CourtDetails() {
     const { id } = useParams<{ id: string }>();
@@ -212,7 +212,7 @@ function CourtDetails() {
                 </div>
             </div>
 
-            {courtDetails && ( // Only render EditCourt if courtDetails is available
+            {courtDetails && (
                 <EditCourt
                     open={editModalOpen}
                     onClose={handleCloseEditModal}

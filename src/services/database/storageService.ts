@@ -10,7 +10,6 @@ export const uploadImage = async (
     onProgress?: (progress: UploadProgress) => void
 ): Promise<string> => {
     try {
-        // Create form data with correct preset name
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', 'vacant_court');
@@ -18,7 +17,6 @@ export const uploadImage = async (
 
         onProgress?.({ progress: 30 });
 
-        // Upload to Cloudinary
         const response = await fetch(
             `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/upload`,
             {

@@ -7,22 +7,31 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    gap: 15px;
+    flex-wrap: wrap;
 }
 
 .dashboard-header h2 {
     margin: 0;
     font-size: 1.8rem;
     color: #1e3a8a;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.dashboard-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     flex-shrink: 0;
 }
+
 
 .dashboard-header .search-bar-container {
     flex-grow: 1;
     max-width: 450px;
 }
-.dashboard-header > div:last-of-type:not(:first-of-type),
-.dashboard-header > form:last-of-type:not(:first-of-type) {
+.dashboard-header-controls > div:first-of-type,
+.dashboard-header-controls > form:first-of-type {
     flex-grow: 1;
     max-width: 450px;
 }
@@ -37,7 +46,6 @@
     color: #6c757d;
     margin: 30px 0;
 }
-
 
 @media (max-width: 768px) {
     .dashboard {
@@ -54,11 +62,18 @@
         font-size: 1.6rem;
         text-align: center;
         margin-bottom: 0;
+        flex-basis: 100%;
+    }
+
+    .dashboard-header-controls {
+        width: 100%;
+        max-width: none;
+        justify-content: center;
     }
 
     .dashboard-header .search-bar-container,
-    .dashboard-header > div:last-of-type:not(:first-of-type),
-    .dashboard-header > form:last-of-type:not(:first-of-type) {
+    .dashboard-header-controls > div:first-of-type,
+    .dashboard-header-controls > form:first-of-type {
         width: 100%;
         max-width: none;
     }
