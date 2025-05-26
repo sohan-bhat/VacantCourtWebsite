@@ -16,32 +16,51 @@ L.Icon.Default.mergeOptions({
 
 interface CourtMapProps {
     courts: CourtCardSummary[];
+    userLocation: { latitude: number; longitude: number } | null;
+    isProximityFilteringActive: boolean;
 }
 
-function CourtMap({ courts }: CourtMapProps) {
+function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMapProps) {
     const initialCenter: [number, number] = [34.0522, -118.2437];
-    const initialZoom = 10;
+    const defaultZoom = 10;
+    const wideOverviewZoom = 3;
 
     const courtsWithCoords = courts.filter(court => court.latitude && court.longitude);
-    let mapCenter = initialCenter;
-    let mapZoom = initialZoom;
 
-    if (courtsWithCoords.length > 0) {
+    let mapCenter = initialCenter;
+    let mapZoom = defaultZoom;
+
+
+    if (userLocation && isProximityFilteringActive && courtsWithCoords.length > 0) {
+        const nearestCourt = courtsWithCoords.find(court => court.distanceKm !== undefined);
+
+        if (nearestCourt) {
+            mapCenter = [nearestCourt.latitude!, nearestCourt.longitude!];
+            mapZoom = 14;
+        } else {
+            mapCenter = [userLocation.latitude, userLocation.longitude];
+            mapZoom = 14;
+        }
+    } else if (userLocation) {
+        mapCenter = [userLocation.latitude, userLocation.longitude];
+        mapZoom = 11;
+    } else if (courtsWithCoords.length > 0) {
         const avgLat = courtsWithCoords.reduce((sum, court) => sum + court.latitude!, 0) / courtsWithCoords.length;
         const avgLon = courtsWithCoords.reduce((sum, court) => sum + court.longitude!, 0) / courtsWithCoords.length;
         mapCenter = [avgLat, avgLon];
 
         if (courtsWithCoords.length === 1) {
-            mapZoom = 13;
+            mapZoom = 20;
         } else {
-             mapZoom = 11;
+            mapZoom = wideOverviewZoom;
         }
     }
+
 
     return (
         <div className="court-map-container">
             <div className="map-wrapper">
-                <MapContainer center={mapCenter} zoom={mapZoom} scrollWheelZoom={true} className="map-component">
+                <MapContainer center={mapCenter} zoom={mapZoom} scrollWheelZoom={true} className="map-component" key={mapCenter[0] + '-' + mapCenter[1] + '-' + mapZoom}>
                     <TileLayer
                         attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -61,7 +80,7 @@ function CourtMap({ courts }: CourtMapProps) {
                                         rel="noopener noreferrer"
                                         style={{ display: 'inline-block', marginTop: '5px', color: '#1e3a8a', textDecoration: 'none', fontWeight: 'bold' }}
                                     >
-                                        Get Directions
+                                        Get Directions (Google Maps)
                                     </a>
                                 )}
                             </Popup>

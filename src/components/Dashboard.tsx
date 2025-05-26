@@ -259,7 +259,11 @@ function Dashboard() {
                     currentSearchTerm={searchTerm}
                 />
             ) : (
-                <CourtMap courts={processedCourts} />
+                <CourtMap 
+                    courts={processedCourts} 
+                    userLocation={userLocation}
+                    isProximityFilteringActive={isLocationFilteringEnabled && geolocationStatus === 'granted'}
+                />
             )}
 
             <Dialog
