@@ -226,38 +226,38 @@ function CourtDetails() {
 
                         }
                         {!isMobileView ?
-                        <Box sx={{
-                            ml: { xs: 1, sm: 2 },
-                            bgcolor: alpha(theme.palette.primary.main, 0.1),
-                            color: theme.palette.primary.dark,
-                            px: '8px', py: '4px',
-                            borderRadius: '16px',
-                            fontSize: '1.1rem',
-                            fontWeight: 600,
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0,
-                            border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                            fontFamily: 'Poppins'
-                        }}>
-                            {courtDetails.type}
-                        </Box>
-                        :
-                        <Box sx={{
-                            ml: { xs: 1, sm: 2 },
-                            bgcolor: alpha(theme.palette.primary.main, 0.1),
-                            color: theme.palette.primary.dark,
-                            px: '8px', py: '4px',
-                            borderRadius: '16px',
-                            fontSize: '0.9rem',
-                            fontWeight: 600,
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0,
-                            border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                            fontFamily: 'Poppins'
-                        }}>
-                            {courtDetails.type}
-                        </Box>
-}
+                            <Box sx={{
+                                ml: { xs: 1, sm: 2 },
+                                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                color: theme.palette.primary.dark,
+                                px: '8px', py: '4px',
+                                borderRadius: '16px',
+                                fontSize: '1.1rem',
+                                fontWeight: 600,
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
+                                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                                fontFamily: 'Poppins'
+                            }}>
+                                {courtDetails.type}
+                            </Box>
+                            :
+                            <Box sx={{
+                                ml: { xs: 1, sm: 2 },
+                                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                color: theme.palette.primary.dark,
+                                px: '8px', py: '4px',
+                                borderRadius: '16px',
+                                fontSize: '0.9rem',
+                                fontWeight: 600,
+                                whiteSpace: 'nowrap',
+                                flexShrink: 0,
+                                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                                fontFamily: 'Poppins'
+                            }}>
+                                {courtDetails.type}
+                            </Box>
+                        }
                     </Box>
                     <IconButton onClick={handleOpenEditModal} color="primary" aria-label="edit court" sx={{ flexShrink: 0 }}>
                         <EditIcon />
@@ -377,7 +377,7 @@ function CourtDetails() {
                                 </Box>
 
                                 {courtDetails.amenities && courtDetails.amenities.length > 0 && (
-                                    <Box sx={{ p: { xs: 2, sm: 2.5 }, mt: { xs: 2, sm: 2.5 } }}>
+                                    <Box sx={{ p: { xs: 2, sm: 2.5 }}}>
                                         <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{
                                             fontSize: '1.1rem', fontWeight: 600
                                         }}>
@@ -397,6 +397,7 @@ function CourtDetails() {
                                         </Grid>
                                     </Box>
                                 )}
+
                             </Paper>
                         </Grid>
                     ) : null}
@@ -432,7 +433,7 @@ function CourtDetails() {
                                         </Box>
                                     )}
 
-                                    <Box sx={{ mb: 3 }}>
+                                    <Box>
                                         <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{
                                             fontSize: '1.1rem', fontWeight: 600
                                         }}>

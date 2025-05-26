@@ -4,6 +4,18 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import '../styles/CourtMap.css';
 import { CourtCardSummary } from '../data/courtData';
+import {
+    Box,
+    Typography,
+    Paper,
+    Grid,
+    Button as MuiButton
+} from '@mui/material';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import SportsTennisIcon from '@mui/icons-material/SportsTennis';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
@@ -118,15 +130,77 @@ function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMap
                 </MapContainer>
             </div>
 
-            <div className="map-court-list">
+            <Grid container spacing={2} className="map-court-list" sx={{ mt: 2 }}>
                 {courts.map(court => (
-                    <div key={court.id} className="map-court-item">
-                        <h4>{court.name}</h4>
-                        <p>{court.available} courts available</p>
-                        <Link to={`/court/${court.id}`}>Details</Link>
-                    </div>
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={court.id}>
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                p: 2,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'flex-start',
+                                borderRadius: 2,
+                                transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                                '&:hover': {
+                                    transform: 'translateY(-3px)',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                },
+                                border: `1px solid ${court.available > 0 ? '#28a745' : '#dc3545'}`
+                            }}
+                        >
+                            <Typography variant="h6" component="h4" sx={{ mb: 1, color: '#1e3a8a', fontWeight: 600 }}>
+                                {court.name}
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                <LocationOnIcon sx={{ fontSize: '1rem', mr: 0.5, color: 'text.secondary' }} />
+                                <Typography variant="body2" color="text.secondary">
+                                    {court.location}
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                <SportsTennisIcon sx={{ fontSize: '1rem', mr: 0.5, color: 'text.secondary' }} />
+                                <Typography variant="body2" color="text.secondary">
+                                    {court.type}
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                {court.available > 0 ? (
+                                    <CheckCircleIcon sx={{ fontSize: '1rem', mr: 0.5, color: '#28a745' }} />
+                                ) : (
+                                    <CancelIcon sx={{ fontSize: '1rem', mr: 0.5, color: '#dc3545' }} />
+                                )}
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        fontWeight: 500,
+                                        color: court.available > 0 ? '#28a745' : '#dc3545'
+                                    }}
+                                >
+                                    {court.available > 0 ? 'Available' : 'Unavailable'} ({court.available}/{court.total})
+                                </Typography>
+                            </Box>
+                            {court.distanceKm !== undefined && (
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1, fontWeight: 500 }}>
+                                    {court.distanceKm} km away
+                                </Typography>
+                            )}
+
+                            <Link to={`/court/${court.id}`} style={{ textDecoration: 'none', width: '100%' }}>
+                                <MuiButton
+                                    variant="contained"
+                                    color="primary"
+                                    fullWidth
+                                    sx={{ mt: 'auto', bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#172d6e' } }}
+                                >
+                                    View Details
+                                </MuiButton>
+                            </Link>
+                        </Paper>
+                    </Grid>
                 ))}
-            </div>
+            </Grid>
         </div>
     );
 }
