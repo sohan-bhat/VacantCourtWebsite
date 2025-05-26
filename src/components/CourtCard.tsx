@@ -24,7 +24,7 @@ function CourtCard({
 
     const displayedCourts = courts.filter(court => {
         const matchesType = currentFilterType === 'all' || court.type.toLowerCase() === currentFilterType!.toLowerCase();
-        
+
         const matchesSearch = currentSearchTerm === '' ||
             court.name.toLowerCase().includes(currentSearchTerm!.toLowerCase()) ||
             court.location.toLowerCase().includes(currentSearchTerm!.toLowerCase());
@@ -33,10 +33,10 @@ function CourtCard({
 
         if (isProximityFilteringActive) {
             return passesBasicFilters &&
-                   court.distanceKm !== undefined &&
-                   court.distanceKm <= maxDistanceKm!;
+                court.distanceKm !== undefined &&
+                court.distanceKm <= maxDistanceKm!;
         }
-        
+
         return passesBasicFilters;
     });
 
@@ -68,17 +68,19 @@ function CourtCard({
                                         {court.name}
                                     </h3>
                                 ) : (
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                                        <h3 className="court-name" style={{ margin: 0, flexGrow: 1 }}>
-                                            {court.name}
-                                        </h3>
-                                        <IconButton
-                                            color="warning"
-                                            size="small"
-                                            sx={{ ml: 1 }}
-                                        >
-                                            <Notifications />
-                                        </IconButton>
+                                    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <h3 className="court-name" style={{ margin: '0 0 10px 0', flexGrow: 1 }}>
+                                                {court.name}
+                                            </h3>
+                                            <IconButton
+                                                color="warning"
+                                                size="small"
+                                                sx={{ ml: 1 }}
+                                            >
+                                                <Notifications />
+                                            </IconButton>
+                                        </div>
                                     </div>
                                 )}
                                 <p className="court-type">{court.type}</p>

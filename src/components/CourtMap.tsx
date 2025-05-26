@@ -58,14 +58,14 @@ const createStrikethroughIcon = (isUnavailable: boolean) => {
 function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMapProps) {
     const initialCenter: [number, number] = [34.0522, -118.2437];
     const defaultZoom = 10;
-    const wideOverviewZoom = 3;
+    const wideOverviewZoom = 10;
 
     const courtsWithCoords = courts.filter(court => court.latitude && court.longitude);
 
     let mapCenter = initialCenter;
     let mapZoom = defaultZoom;
 
-    if (userLocation && isProximityFilteringActive && courtsWithCoords.length > 0) {
+    if (userLocation && !isProximityFilteringActive && courtsWithCoords.length > 0) {
         const nearestCourt = courtsWithCoords.find(court => court.distanceKm !== undefined);
 
         if (nearestCourt) {
