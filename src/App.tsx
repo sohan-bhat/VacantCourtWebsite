@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Dashboard from './components/Dashboard';
-import CourtDetails from './components/CourtDetails';
-import Header from './components/Header';
-import Footer from './components/Footer';
+import Dashboard from './components/dashboard/Dashboard';
+import CourtDetails from './components/courts/CourtDetails';
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './styles/App.css';

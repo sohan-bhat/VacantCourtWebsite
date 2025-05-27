@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import CourtSchedule from './CourtSchedule';
-import { Court, subscribeToCourtById } from '../data/courtData';
+import { Court, subscribeToCourtById } from '../../data/courtData';
 import EditCourt from './EditCourt';
-import '../styles/CourtDetails.css';
+import '../../styles/CourtDetails.css';
 import {
     CircularProgress,
     IconButton,

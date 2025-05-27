@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import '../styles/CourtCard.css';
-import { CourtCardSummary } from '../data/courtData';
+import '../../styles/CourtCard.css';
+import { CourtCardSummary } from '../../data/courtData';
 import { CircularProgress, IconButton } from '@mui/material';
 import Notifications from '@mui/icons-material/Notifications';
 

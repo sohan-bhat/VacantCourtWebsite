@@ -1,4 +1,4 @@
-import '../styles/FilterControls.css';
+import '../../styles/FilterControls.css';
 
 type FilterControlsProps = {
     filterType: string;

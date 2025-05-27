@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import '../styles/CourtMap.css';
-import { CourtCardSummary } from '../data/courtData';
+import '../../styles/CourtMap.css';
+import { CourtCardSummary } from '../../data/courtData';
 import {
     Box,
     Typography,

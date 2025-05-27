@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import CourtCard from './CourtCard';
-import CourtMap from './CourtMap';
+import CourtCard from '../courts/CourtCard';
+import CourtMap from '../courts/CourtMap';
 import FilterControls from './FilterControls';
 import SearchBar from './SearchBar';
-import '../styles/Dashboard.css';
-import { subscribeToCourtsSummary, CourtCardSummary, getDistanceFromLatLonInKm } from '../data/courtData';
+import '../../styles/Dashboard.css';
+import { subscribeToCourtsSummary, CourtCardSummary, getDistanceFromLatLonInKm } from '../../data/courtData';
 import {
     Button,
     CircularProgress,
