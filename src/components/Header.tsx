@@ -12,7 +12,7 @@ function Header() {
             <div className="header-container">
                 <nav className="main-nav">
                     <Link to="/">
-                       {/* <img src='../../ground.png' width="50" height="50"/> */}
+                       <img src='../../ground.png'/>
                         Vacant Court
                     </Link>
                 </nav>

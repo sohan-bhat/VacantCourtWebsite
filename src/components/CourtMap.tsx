@@ -55,7 +55,6 @@ const createStrikethroughIcon = (isUnavailable: boolean) => {
     });
 };
 
-// --- Component to set map bounds ---
 interface SetMapBoundsProps {
     bounds: L.LatLngExpression[] | undefined;
 }
@@ -64,10 +63,9 @@ function SetMapBounds({ bounds }: SetMapBoundsProps) {
     const map = useMap();
     useEffect(() => {
         if (bounds) {
-            // Ensure bounds are valid before fitting
             const LBounds = L.latLngBounds(bounds);
             if (LBounds.isValid()) {
-                map.fitBounds(LBounds, { padding: [50, 50] }); // Add some padding
+                map.fitBounds(LBounds, { padding: [50, 50] });
             }
         }
     }, [map, bounds]);
@@ -75,13 +73,12 @@ function SetMapBounds({ bounds }: SetMapBoundsProps) {
     return null;
 }
 
-// Define maximum distance for proximity filter (in kilometers)
 const MAX_DISTANCE_KM = 40;
 
 function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMapProps) {
-    const initialCenter: [number, number] = [34.0522, -118.2437]; // Default if no courts and no user location
+    const initialCenter: [number, number] = [34.0522, -118.2437];
     const defaultZoomForNoCourtsOrUserLocation = 3;
-    const zoomForUserLocationIfNoCourtsInRange = 12; // Zoom when centered on user, but no courts are within proximity filter
+    const zoomForUserLocationIfNoCourtsInRange = 12;
     const zoomForSingleCourt = 14;
 
     const courtsWithCoords = courts.filter(court => court.latitude && court.longitude);
@@ -91,7 +88,6 @@ function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMap
     let boundsToFit: L.LatLngBoundsExpression | undefined = undefined;
 
     if (isProximityFilteringActive && userLocation) {
-        // SCENARIO 1: Proximity ON & User Location available
         const courtsWithinProximity = courtsWithCoords.filter(
             court => court.distanceKm !== undefined && court.distanceKm <= MAX_DISTANCE_KM
         );
@@ -99,29 +95,21 @@ function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMap
         if (courtsWithinProximity.length > 0) {
             boundsToFit = courtsWithinProximity.map(court => [court.latitude!, court.longitude!] as L.LatLngTuple);
         } else {
-            // No courts within proximity, center on user, but don't fit bounds
             mapCenter = [userLocation.latitude, userLocation.longitude];
             mapZoom = zoomForUserLocationIfNoCourtsInRange;
         }
     } else if (courtsWithCoords.length > 0) {
-        // SCENARIO 2: Proximity OFF (regardless of userLocation) OR No User Location, but courts exist
-        // Fit bounds to all available courts.
         boundsToFit = courtsWithCoords.map(court => [court.latitude!, court.longitude!] as L.LatLngTuple);
     } else if (userLocation) {
-        // SCENARIO 3: No courts with coords, but user location is available (e.g., proximity on, no nearby results)
         mapCenter = [userLocation.latitude, userLocation.longitude];
-        mapZoom = zoomForUserLocationIfNoCourtsInRange; // Center on user if there are no courts at all to show
+        mapZoom = zoomForUserLocationIfNoCourtsInRange;
     }
-    // If boundsToFit remains undefined (e.g., no courts with coords, no user location for scenario 3), map uses initialCenter and defaultZoom.
 
 
-    // Final check: if we are not using fitBounds and there's only one court, focus on it.
     if (!boundsToFit && courtsWithCoords.length === 1) {
         mapCenter = [courtsWithCoords[0].latitude!, courtsWithCoords[0].longitude!];
         mapZoom = zoomForSingleCourt;
     }
-    // If after all logic, we're still not fitting bounds and there are no courts to display
-    // ensure we have a fallback center and zoom (already initialized).
 
     return (
         <div className="court-map-container">
@@ -131,8 +119,6 @@ function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMap
                     zoom={mapZoom}
                     scrollWheelZoom={true}
                     className="map-component"
-                    // Key change to ensure map re-renders when boundsToFit changes,
-                    // as map.fitBounds might not trigger a prop change that MapContainer reacts to.
                     key={boundsToFit ? JSON.stringify(boundsToFit) : `${mapCenter[0]}-${mapCenter[1]}-${mapZoom}`}
                 >
                     <TileLayer
@@ -177,7 +163,7 @@ function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMap
                 {(isProximityFilteringActive && userLocation
                     ? courts.filter(court => court.distanceKm !== undefined && court.distanceKm <= MAX_DISTANCE_KM)
                     : courts
-                ).map(court => ( // Map over the potentially filtered list
+                ).map(court => (
                     <Grid item xs={12} sm={6} md={4} lg={3} key={court.id}>
                         <Paper
                             elevation={3}
@@ -227,7 +213,6 @@ function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMap
                                     {court.available > 0 ? 'Available' : 'Unavailable'} ({court.available}/{court.total})
                                 </Typography>
                             </Box>
-                            {/* Display Distance if available (it should be if proximity is on and it's shown) */}
                             {court.distanceKm !== undefined && (
                                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1, fontWeight: 500 }}>
                                     {court.distanceKm} km away

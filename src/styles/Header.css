@@ -1,7 +1,7 @@
 .app-header {
     background-color: #1e3a8a;
     color: white;
-    padding: 1rem 0;
+    padding: 0.5rem 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -22,13 +22,21 @@
 .main-nav a {
     color: white;
     text-decoration: none;
-    padding: 0.5rem 1rem;
     border-radius: 4px;
     transition: background-color 0.3s;
     margin: 0;
     font-size: 1.8rem;
     font-weight: 600;
+    display: inline-flex;
+    align-items: center;
 }
+
+.main-nav a img {
+    width: 60px;
+    height: 60px;
+    margin-right: 10px;
+}
+
 
 .main-nav a:hover {
     background-color: rgba(255, 255, 255, 0.1);
@@ -38,6 +46,11 @@
     .header-container {
         flex-direction: column;
         padding: 10px;
+    }
+
+    .main-nav a {
+        margin-bottom: 10px;
+        justify-content: center;
     }
 
     .app-header h1 {
