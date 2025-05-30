@@ -41,6 +41,7 @@ function Dashboard() {
     const [showGeolocationDialog, setShowGeolocationDialog] = useState(false);
 
     const [isLocationFilteringEnabled, setIsLocationFilteringEnabled] = useState(false);
+    const [showOnlyConfigured, setShowOnlyConfigured] = useState(true);
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -57,10 +58,11 @@ function Dashboard() {
                 console.error(err);
                 setError("Failed to load court data. Please try again later.");
                 setLoading(false);
-            }
+            },
+            showOnlyConfigured
         );
         return () => unsubscribe();
-    }, []);
+    }, [showOnlyConfigured]);
 
     const initiateGeolocation = useCallback(() => {
         if (navigator.geolocation) {
@@ -95,6 +97,9 @@ function Dashboard() {
         if (geolocationStatus === 'pending') {
             return;
         } else if (geolocationStatus === 'granted') {
+            if (!isLocationFilteringEnabled) {
+                setIsLocationFilteringEnabled(true);
+            }
             initiateGeolocation();
         } else {
             setShowGeolocationDialog(true);
@@ -113,10 +118,12 @@ function Dashboard() {
     };
 
     const handleLocationFilterToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setIsLocationFilteringEnabled(event.target.checked);
-        if (event.target.checked) {
+        const checked = event.target.checked;
+        setIsLocationFilteringEnabled(checked);
+        if (checked) {
             if (geolocationStatus === 'granted') {
-                initiateGeolocation();
+            } else if (geolocationStatus === 'idle' || geolocationStatus === 'denied' || geolocationStatus === 'error') {
+                setShowGeolocationDialog(true);
             }
         }
     };
@@ -136,9 +143,20 @@ function Dashboard() {
             distanceKm: distanceKmCalculated,
         };
     }).sort((a, b) => {
-        if (isLocationFilteringEnabled && geolocationStatus === 'granted' && a.distanceKm !== undefined && b.distanceKm !== undefined) {
-            return a.distanceKm - b.distanceKm;
+        if (a.isComplexConfigured && !b.isComplexConfigured) {
+            return -1;
         }
+        if (!a.isComplexConfigured && b.isComplexConfigured) {
+            return 1;
+        }
+
+
+        if (isLocationFilteringEnabled && geolocationStatus === 'granted' && a.distanceKm !== undefined && b.distanceKm !== undefined) {
+            if (a.distanceKm !== b.distanceKm) {
+                return a.distanceKm - b.distanceKm;
+            }
+        }
+
         return a.name.localeCompare(b.name);
     });
 
@@ -178,7 +196,6 @@ function Dashboard() {
                         sx={{
                             mr: { xs: 0, sm: 1 },
                             ml: { xs: 1, sm: 0 },
-
                             border: `1px solid ${isLocationFilteringEnabled ? theme.palette.success.light : theme.palette.grey[300]}`,
                             borderRadius: theme.shape.borderRadius,
                             py: 0.5,
@@ -228,6 +245,7 @@ function Dashboard() {
         );
     };
 
+
     if (error) {
         return <div className="dashboard-error">{error}</div>;
     }
@@ -247,6 +265,8 @@ function Dashboard() {
                 setFilterType={setFilterType}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
+                showOnlyConfigured={showOnlyConfigured}
+                setShowOnlyConfigured={setShowOnlyConfigured}
             />
 
             {viewMode === 'list' ? (
@@ -259,8 +279,8 @@ function Dashboard() {
                     currentSearchTerm={searchTerm}
                 />
             ) : (
-                <CourtMap 
-                    courts={processedCourts} 
+                <CourtMap
+                    courts={processedCourts}
                     userLocation={userLocation}
                     isProximityFilteringActive={isLocationFilteringEnabled && geolocationStatus === 'granted'}
                 />

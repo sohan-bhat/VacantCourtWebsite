@@ -36,7 +36,7 @@ export interface CourtCardSummary {
     available: number;
     total: number;
     location: string;
-    isConfigured: boolean;
+    isComplexConfigured: boolean;
     latitude?: number;
     longitude?: number;
     address: string;
@@ -49,7 +49,7 @@ export const getDistanceFromLatLonInKm = (
     lat2: number,
     lon2: number
 ): number => {
-    const R = 6371;
+    const R = 6378;
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
     const a =
@@ -69,30 +69,35 @@ const deg2rad = (deg: number): number => {
 
 export const subscribeToCourtsSummary = (
     onUpdate: (courtsSummary: CourtCardSummary[]) => void,
-    onError: (error: Error) => void
+    onError: (error: Error) => void,
+    showOnlyConfigured: boolean
 ): Unsubscribe => {
     return listenToQuery<Court>(
         "Courts",
         (courtDocs) => {
-            const displayableComplexes = courtDocs.filter(doc =>
-                Array.isArray(doc.courts) && doc.courts.some(subcourt => subcourt.isConfigured)
-            );
+            let complexesToDisplay = courtDocs;
 
-            const summaries = displayableComplexes.map((courtDoc): CourtCardSummary => {
-                const configuredCourts = Array.isArray(courtDoc.courts)
-                    ? courtDoc.courts.filter(subcourt => subcourt.isConfigured)
-                    : [];
+            if (showOnlyConfigured) {
+                complexesToDisplay = courtDocs.filter(doc =>
+                    Array.isArray(doc.courts) && doc.courts.some(subcourt => subcourt.isConfigured)
+                );
+            }
 
-                const availableConfigured = configuredCourts.filter(subcourt => subcourt.status === "available").length;
+            const summaries = complexesToDisplay.map((courtDoc): CourtCardSummary => {
+                const allSubCourts = Array.isArray(courtDoc.courts) ? courtDoc.courts : [];
+                const configuredSubCourts = allSubCourts.filter(subcourt => subcourt.isConfigured);
+                const availableConfiguredSubCourts = configuredSubCourts.filter(subcourt => subcourt.status === "available").length;
+                
+                const complexHasAtLeastOneConfiguredSubCourt = configuredSubCourts.length > 0;
 
                 return {
                     id: courtDoc.id,
                     name: courtDoc.name,
                     type: courtDoc.type,
-                    available: availableConfigured,
-                    total: configuredCourts.length,
+                    available: availableConfiguredSubCourts,
+                    total: allSubCourts.length,
                     location: courtDoc.location,
-                    isConfigured: true,
+                    isComplexConfigured: complexHasAtLeastOneConfiguredSubCourt,
                     latitude: courtDoc.latitude,
                     longitude: courtDoc.longitude,
                     address: courtDoc.address,

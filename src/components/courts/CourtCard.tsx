@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import '../../styles/CourtCard.css';
 import { CourtCardSummary } from '../../data/courtData';
-import { CircularProgress, IconButton } from '@mui/material';
+import { CircularProgress, IconButton, Tooltip } from '@mui/material';
+import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest'
 import Notifications from '@mui/icons-material/Notifications';
 
 interface CourtCardProps {
@@ -61,35 +62,54 @@ function CourtCard({
                     <div className="no-results">{noResultsMessage}</div>
                 ) : (
                     displayedCourts.map(court => (
-                        <div key={court.id} className="court-card">
+                        <div key={court.id} className={`court-card ${!court.isComplexConfigured ? 'court-card-unconfigured' : ''}`}>
                             <div className="court-info">
-                                {court.available > 0 ? (
-                                    <h3 className="court-name">
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                    <h3 className="court-name" style={{ margin: '0 0 10px 0', flexGrow: 1, opacity: court.isComplexConfigured ? 1 : 0.7 }}>
                                         {court.name}
                                     </h3>
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <h3 className="court-name" style={{ margin: '0 0 10px 0', flexGrow: 1 }}>
-                                                {court.name}
-                                            </h3>
-                                            <IconButton
-                                                color="warning"
-                                                size="small"
-                                                sx={{ ml: 1 }}
-                                            >
+                                    {court.isComplexConfigured && court.available === 0 && (
+                                        <Tooltip title="Notify when available (feature coming soon!)">
+                                            <IconButton color="warning" size="small" sx={{ ml: 1 }} >
                                                 <Notifications />
                                             </IconButton>
-                                        </div>
-                                    </div>
-                                )}
-                                <p className="court-type">{court.type}</p>
-                                <p className="court-location">{court.location}</p>
+                                        </Tooltip>
+                                    )}
+                                    {!court.isComplexConfigured && (
+                                        <Tooltip title="This facility's courts are not yet configured in the system.">
+                                            <SettingsSuggestIcon color="disabled" sx={{mb: 1.5}} />
+                                        </Tooltip>
+                                    )}
+                                </div>
+                                
+                                <p className="court-type" style={{ opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.type}</p>
+                                <p className="court-location" style={{ opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.location}</p>
+
                                 <div className="availability-indicator">
-                                    <span className={`availability-status ${court.available > 0 ? 'available' : 'unavailable'}`}>
-                                        {court.available > 0 ? 'Available' : 'Unavailable'}
-                                    </span>
-                                    <span className="court-count">{court.available} / {court.total} courts</span>
+                                    {!court.isComplexConfigured ? (
+                                        <>
+                                            <span className={`availability-status unconfigured`}>
+                                                Not Configured
+                                            </span>
+                                            <span className="court-count unconfigured-count">
+                                                ({court.total} total courts)
+                                            </span>
+                                        </>
+                                    ) : court.available > 0 ? (
+                                        <>
+                                            <span className={`availability-status available`}>
+                                                Available
+                                            </span>
+                                            <span className="court-count">{court.available} / {court.total} courts</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className={`availability-status unavailable`}>
+                                                Unavailable
+                                            </span>
+                                            <span className="court-count">{court.available} / {court.total} courts</span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                             <div className="court-actions">

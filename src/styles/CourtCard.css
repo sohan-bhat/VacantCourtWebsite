@@ -61,6 +61,12 @@
     color: #842029;
 }
 
+.availability-status.unconfigured {
+    background-color: #dfe0e0; /* Light grey - more neutral and modern */
+    color: #4f5256;       /* Darker grey text for better contrast */
+    /* Uses the common padding, border-radius, font-size, font-weight from .availability-status */
+  }
+
 .court-count {
     font-size: 0.9rem;
     color: #6c757d;
