@@ -9,21 +9,22 @@ import {
     Box,
     Typography,
     Paper,
-    Grid,
+    Tooltip,
     Button as MuiButton
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import SportsTennisIcon from '@mui/icons-material/SportsTennis';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
 
@@ -33,27 +34,35 @@ interface CourtMapProps {
     isProximityFilteringActive: boolean;
 }
 
-const createStrikethroughIcon = (isUnavailable: boolean) => {
+const createCustomMapIcon = (isComplexConfigured: boolean, isAvailable: boolean) => {
     const defaultIconUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png';
     const defaultIconRetinaUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png';
     const defaultShadowUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png';
     const iconSize: [number, number] = [25, 41];
 
+    let wrapperClass = 'leaflet-marker-icon-wrapper';
+    if (!isComplexConfigured) {
+        wrapperClass += ' marker-grayscale'; // Grayscale for not configured
+    } else if (!isAvailable) {
+        wrapperClass += ' marker-unavailable-strikethrough'; // Strikethrough for configured but unavailable
+    }
+
     const htmlContent = `
-        <div class="leaflet-marker-icon-wrapper ${isUnavailable ? 'marker-unavailable-strikethrough' : ''}">
+        <div class="${wrapperClass}">
             <img src="${defaultIconUrl}" srcset="${defaultIconRetinaUrl} 2x" class="leaflet-marker-icon" alt="" style="width: ${iconSize[0]}px; height: ${iconSize[1]}px;">
         </div>
         <img src="${defaultShadowUrl}" class="leaflet-marker-shadow" alt="" style="width: 41px; height: 41px; left: 0px; top: 0px;">
     `;
 
     return L.divIcon({
-        className: 'custom-leaflet-icon-container',
+        className: 'custom-leaflet-icon-container', // Keep this if you have styles for it
         html: htmlContent,
         iconSize: iconSize,
         iconAnchor: [iconSize[0] / 2, iconSize[1]],
         popupAnchor: [1, -34],
     });
 };
+
 
 interface SetMapBoundsProps {
     bounds: L.LatLngExpression[] | undefined;
@@ -127,16 +136,23 @@ function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMap
                     />
 
                     {courtsWithCoords.map(court => {
-                        const isUnavailable = court.available === 0;
+                        // Determine icon state based on new properties
+                        const isConfigured = court.isComplexConfigured; // Assuming this is passed from Dashboard
+                        const isCurrentlyAvailable = court.available > 0;
+
                         return (
                             <Marker
                                 key={court.id}
                                 position={[court.latitude!, court.longitude!]}
-                                icon={createStrikethroughIcon(isUnavailable)}
+                                icon={createCustomMapIcon(isConfigured, isCurrentlyAvailable)} // Use updated function
                             >
                                 <Popup>
                                     <strong>{court.name}</strong><br />
-                                    {court.available} courts available<br />
+                                    {/* Adjust popup message based on configuration status if desired */}
+                                    {!isConfigured
+                                        ? `${court.total} total courts (not configured)`
+                                        : `${court.available} / ${court.total} courts available`}
+                                    <br />
                                     <Link to={`/court/${court.id}`}>Details</Link>
                                     <br />
                                     {court.address && (
@@ -159,80 +175,100 @@ function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMap
                 </MapContainer>
             </div>
 
-            <Grid container spacing={2} className="map-court-list" sx={{ mt: 2 }}>
+            <div className="map-court-list">
                 {(isProximityFilteringActive && userLocation
                     ? courts.filter(court => court.distanceKm !== undefined && court.distanceKm <= MAX_DISTANCE_KM)
                     : courts
                 ).map(court => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={court.id}>
+                    <div className="court-map-card-item" key={court.id}>
                         <Paper
                             elevation={3}
                             sx={{
                                 p: 2,
                                 display: 'flex',
                                 flexDirection: 'column',
-                                alignItems: 'flex-start',
+                                height: '100%', // For consistent card height in a row
                                 borderRadius: 2,
                                 transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                                 '&:hover': {
                                     transform: 'translateY(-3px)',
                                     boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                                 },
-                                border: `1px solid ${court.available > 0 ? '#28a745' : '#dc3545'}`
+                                border: `1px solid ${!court.isComplexConfigured ? '#bdbdbd' : (court.available > 0 ? '#28a745' : '#dc3545')}`,
+                                opacity: !court.isComplexConfigured ? 0.85 : 1,
                             }}
                         >
-                            <Typography variant="h6" component="h4" sx={{ mb: 1, color: '#1e3a8a', fontWeight: 600 }}>
-                                {court.name}
-                            </Typography>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', mb: 1 }}>
+                                <Typography variant="h6" component="h4" sx={{ color: '#1e3a8a', fontWeight: 600, flexGrow: 1 }}>
+                                    {court.name}
+                                </Typography>
+                                {!court.isComplexConfigured && (
+                                    <Tooltip title="This facility's courts are not yet configured.">
+                                        <SettingsSuggestIcon color="disabled" sx={{ fontSize: '1.2rem' }} />
+                                    </Tooltip>
+                                )}
+                            </Box>
+                            
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                                <LocationOnIcon sx={{ fontSize: '1rem', mr: 0.5, color: 'text.secondary' }} />
+                                <LocationOnIcon sx={{ fontSize: '1rem', mr: 0.5, color: 'text.secondary', transform: 'translateY(-0.27rem)'  }} />
                                 <Typography variant="body2" color="text.secondary">
                                     {court.location}
                                 </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                <SportsTennisIcon sx={{ fontSize: '1rem', mr: 0.5, color: 'text.secondary' }} />
+                                <SportsTennisIcon sx={{ fontSize: '1rem', mr: 0.5, color: 'text.secondary', transform: 'translateY(-0.27rem)'  }} />
                                 <Typography variant="body2" color="text.secondary">
                                     {court.type}
                                 </Typography>
                             </Box>
 
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                {court.available > 0 ? (
-                                    <CheckCircleIcon sx={{ fontSize: '1rem', mr: 0.5, color: '#28a745' }} />
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, minHeight: '24px' }}>
+                                {!court.isComplexConfigured ? (
+                                    <>
+                                        <SettingsSuggestIcon sx={{ fontSize: '1rem', mr: 0.5, color: 'text.disabled', transform: 'translateY(-0.27rem)'  }} />
+                                        <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+                                            Not Configured ({court.total} total courts)
+                                        </Typography>
+                                    </>
+                                ) : court.available > 0 ? (
+                                    <>
+                                        <CheckCircleIcon sx={{ fontSize: '1rem', mr: 0.5, color: '#28a745', transform: 'translateY(-0.27rem)'  }} />
+                                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#28a745' }} >
+                                            Available ({court.available}/{court.total})
+                                        </Typography>
+                                    </>
                                 ) : (
-                                    <CancelIcon sx={{ fontSize: '1rem', mr: 0.5, color: '#dc3545' }} />
+                                    <>
+                                        <CancelIcon sx={{ fontSize: '1rem', mr: 0.5, color: '#dc3545', transform: 'translateY(-0.27rem)'  }} />
+                                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#dc3545' }} >
+                                            Unavailable ({court.available}/{court.total})
+                                        </Typography>
+                                    </>
                                 )}
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        fontWeight: 500,
-                                        color: court.available > 0 ? '#28a745' : '#dc3545'
-                                    }}
-                                >
-                                    {court.available > 0 ? 'Available' : 'Unavailable'} ({court.available}/{court.total})
-                                </Typography>
                             </Box>
+
                             {court.distanceKm !== undefined && (
                                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1, fontWeight: 500 }}>
                                     {court.distanceKm} km away
                                 </Typography>
                             )}
 
-                            <Link to={`/court/${court.id}`} style={{ textDecoration: 'none', width: '100%' }}>
-                                <MuiButton
-                                    variant="contained"
-                                    color="primary"
-                                    fullWidth
-                                    sx={{ mt: 'auto', bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#172d6e' } }}
-                                >
-                                    View Details
-                                </MuiButton>
-                            </Link>
+                            <Box sx={{ marginTop: 'auto', width: '100%' }}>
+                                <Link to={`/court/${court.id}`} style={{ textDecoration: 'none', width: '100%' }}>
+                                    <MuiButton
+                                        variant="contained"
+                                        color="primary"
+                                        fullWidth
+                                        sx={{ bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#172d6e' } }}
+                                    >
+                                        View Details
+                                    </MuiButton>
+                                </Link>
+                            </Box>
                         </Paper>
-                    </Grid>
+                    </div>
                 ))}
-            </Grid>
+            </div>
         </div>
     );
 }
