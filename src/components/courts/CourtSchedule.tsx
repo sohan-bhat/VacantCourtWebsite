@@ -6,7 +6,6 @@ interface SubCourtForSchedule {
     surface: string;
     status: 'available' | 'in-use' | 'maintenance';
     isConfigured: boolean;
-    nextAvailable?: string;
 }
 
 interface CourtScheduleProps {
@@ -51,11 +50,6 @@ function CourtSchedule({ courts }: CourtScheduleProps) {
                             <p className={`court-status-text ${statusClassName}`}>
                                 {displayStatusText}
                             </p>
-                            {court.isConfigured && court.status !== 'available' && court.nextAvailable && (
-                                <p className="court-next-available">
-                                    Next available: {court.nextAvailable}
-                                </p>
-                            )}
                         </div>
                     </div>
                 );

@@ -237,7 +237,7 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                 ...formData,
                 courts: [...formData.courts, {
                     id: Date.now(), name: '', surface: '', status: 'available',
-                    isConfigured: false, nextAvailable: ''
+                    isConfigured: false
                 }]
             });
         }
@@ -337,13 +337,13 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                             <TextField required label="Facility Name" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} error={!!errors.name} helperText={errors.name} />
                             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
                                 <TextField required label="Sport Type" value={formData.type} onChange={(e) => handleInputChange('type', e.target.value)} error={!!errors.type} helperText={errors.type} fullWidth />
-                                <TextField required label="Location Area" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} error={!!errors.location} helperText={errors.location} fullWidth />
+                                <TextField required label="General Area" value={formData.location} onChange={(e) => handleInputChange('location', e.target.value)} error={!!errors.location} helperText={errors.location} fullWidth />
                             </Box>
                         </Box>
                     </Box>
                     <Divider />
                     <Box ref={contactInfoRef}>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Contact Details</Typography>
+                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Details</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Facility contact information</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <Autocomplete
@@ -402,7 +402,7 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                     </Box>
                     <Divider />
                     <Box>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Amenities</Typography>
+                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Amenities</Typography>
                         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mb: 2, alignItems: { sm: 'center' } }}>
                             <TextField size="small" value={amenityInput} onChange={(e) => setAmenityInput(e.target.value)} placeholder="Enter an amenity" fullWidth />
                             <Button onClick={handleAddAmenity} variant="contained" size="small" sx={{ minWidth: '100px', width: { xs: '100%', sm: 'auto' }, bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#1e3a8a', opacity: 0.9 } }}>Add</Button>

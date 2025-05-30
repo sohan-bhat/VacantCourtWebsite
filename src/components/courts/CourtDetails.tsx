@@ -445,7 +445,7 @@ function CourtDetails() {
                                                     <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><PlaceIcon /></ListItemIcon>
                                                     <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{
                                                         fontSize: '0.9rem', fontWeight: 'bold'
-                                                    }}>Location Area: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.location}</Typography></Typography>} />
+                                                    }}>General Area: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.location}</Typography></Typography>} />
                                                 </ListItem>
                                             )}
                                             {courtDetails.address && (

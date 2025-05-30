@@ -30,7 +30,6 @@ interface SubCourt {
     status: string;
     isConfigured: boolean;
     id?: number | string;
-    nextAvailable?: string;
 }
 
 interface CourtError {
@@ -81,7 +80,6 @@ const initialFormData: CourtFormData = {
         surface: '',
         status: 'available',
         isConfigured: false,
-        nextAvailable: ''
     }],
     description: '',
     images: [],
@@ -270,7 +268,6 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                 surface: '',
                 status: 'available',
                 isConfigured: false,
-                nextAvailable: ''
             }]
         });
     };
@@ -334,7 +331,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                                     value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                                     error={!!errors.type} helperText={errors.type} fullWidth
                                 />
-                                <TextField autoComplete='off' required label="Location Area" placeholder="e.g. Downtown"
+                                <TextField autoComplete='off' required label="General Area" placeholder="e.g. Downtown"
                                     value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                     error={!!errors.location} helperText={errors.location} fullWidth
                                 />
@@ -343,7 +340,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                     </Box>
                     <Divider />
                     <Box ref={contactInfoRef}>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Contact Details</Typography>
+                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Details</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Facility contact information</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <Autocomplete
@@ -406,7 +403,7 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                     </Box>
                     <Divider />
                     <Box>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Amenities</Typography>
+                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Amenities</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>List available amenities</Typography>
                         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mb: 2, alignItems: { sm: 'center' } }}>
                             <TextField autoComplete='off' size="small" value={amenity} onChange={(e) => setAmenity(e.target.value)}

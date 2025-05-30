@@ -11,7 +11,6 @@ export interface SubCourt {
     surface: string;
     status: 'available' | 'in-use' | 'maintenance';
     isConfigured: boolean;
-    nextAvailable: string;
 }
 
 export interface Court {
