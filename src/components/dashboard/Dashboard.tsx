@@ -235,7 +235,7 @@ function Dashboard() {
     return (
         <div className="dashboard">
             <div className="dashboard-header">
-                <h2>Real-Time Court Availability</h2>
+                <h2>Find Available Courts Near You!</h2>
                 <div className="dashboard-header-controls">
                     <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
                     {getGeolocationControlUI()}
