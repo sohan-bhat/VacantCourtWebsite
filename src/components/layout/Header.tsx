@@ -12,7 +12,7 @@
                 <div className="header-container">
                     <nav className="main-nav">
                         <Link to="/">
-                        <img src='/ground.png'/>
+                            <img src='/ground.png'/>
                             Vacant Court
                         </Link>
                     </nav>

@@ -190,37 +190,50 @@ function Dashboard() {
         }
     };
 
-    const processedCourts = courts.map(court => {
-        let distanceKmCalculated: number | undefined;
-        if (userLocation && court.latitude !== undefined && court.longitude !== undefined) {
-            distanceKmCalculated = getDistanceFromLatLonInKm(
-                userLocation.latitude,
-                userLocation.longitude,
-                court.latitude,
-                court.longitude
+    const processedCourts = courts
+        .filter(court => {
+            if (filterType === 'all') return true;
+            return court.type.toLowerCase() === filterType.toLowerCase();
+        })
+        .filter(court => {
+            if (searchTerm === '') return true;
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            return (
+                court.name.toLowerCase().includes(lowerSearchTerm) ||
+                court.location.toLowerCase().includes(lowerSearchTerm)
             );
-        }
-        return {
-            ...court,
-            distanceKm: distanceKmCalculated,
-        };
-    }).sort((a, b) => {
-        if (a.isComplexConfigured && !b.isComplexConfigured) {
-            return -1;
-        }
-        if (!a.isComplexConfigured && b.isComplexConfigured) {
-            return 1;
-        }
-
-
-        if (isLocationFilteringEnabled && geolocationStatus === 'granted' && a.distanceKm !== undefined && b.distanceKm !== undefined) {
-            if (a.distanceKm !== b.distanceKm) {
-                return a.distanceKm - b.distanceKm;
+        })
+        .map(court => {
+            let distanceKmCalculated: number | undefined;
+            if (userLocation && court.latitude !== undefined && court.longitude !== undefined) {
+                distanceKmCalculated = getDistanceFromLatLonInKm(
+                    userLocation.latitude,
+                    userLocation.longitude,
+                    court.latitude,
+                    court.longitude
+                );
             }
-        }
+            return {
+                ...court,
+                distanceKm: distanceKmCalculated,
+            };
+        })
+        .sort((a, b) => {
+            if (a.isComplexConfigured && !b.isComplexConfigured) {
+                return -1;
+            }
+            if (!a.isComplexConfigured && b.isComplexConfigured) {
+                return 1;
+            }
 
-        return a.name.localeCompare(b.name);
-    });
+            if (isLocationFilteringEnabled && geolocationStatus === 'granted' && a.distanceKm !== undefined && b.distanceKm !== undefined) {
+                if (a.distanceKm !== b.distanceKm) {
+                    return a.distanceKm - b.distanceKm;
+                }
+            }
+
+            return a.name.localeCompare(b.name);
+        });
 
     const getGeolocationControlUI = () => {
         let element;
