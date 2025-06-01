@@ -24,9 +24,15 @@ import {
 import LocationDisabledIcon from '@mui/icons-material/LocationDisabled';
 import LocationOn from '@mui/icons-material/LocationOn'
 import MyLocationIcon from '@mui/icons-material/MyLocation';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 
 const MAX_DISTANCE_KM = 40;
+
+const LOCATION_PERMISSION_KEY = 'vacantCourtLocationPermission';
+const USER_LOCATION_KEY = 'vacantCourtUserLocation';
+
+type GeolocationStatus = 'idle' | 'pending' | 'granted' | 'denied' | 'error';
+
 
 function Dashboard() {
     const [courts, setCourts] = useState<CourtCardSummary[]>([]);
@@ -36,11 +42,31 @@ function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-    const [geolocationStatus, setGeolocationStatus] = useState<'idle' | 'pending' | 'granted' | 'denied' | 'error'>('idle');
+    const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(() => {
+        const storedLocation = localStorage.getItem(USER_LOCATION_KEY);
+        return storedLocation ? JSON.parse(storedLocation) : null;
+    });
+
+    const [geolocationStatus, setGeolocationStatus] = useState<GeolocationStatus>(() => {
+        const storedPermission = localStorage.getItem(LOCATION_PERMISSION_KEY) as GeolocationStatus | null;
+        const storedLocation = localStorage.getItem(USER_LOCATION_KEY);
+        if (storedPermission === 'granted' && storedLocation) {
+            return 'granted';
+        }
+        if (storedPermission === 'denied') {
+            return 'denied';
+        }
+        return 'idle';
+    });
+
     const [showGeolocationDialog, setShowGeolocationDialog] = useState(false);
 
-    const [isLocationFilteringEnabled, setIsLocationFilteringEnabled] = useState(false);
+    const [isLocationFilteringEnabled, setIsLocationFilteringEnabled] = useState(() => {
+        const storedPermission = localStorage.getItem(LOCATION_PERMISSION_KEY);
+        const storedLocation = localStorage.getItem(USER_LOCATION_KEY);
+        return storedPermission === 'granted' && !!storedLocation;
+    });
+
     const [showOnlyConfigured, setShowOnlyConfigured] = useState(true);
 
     const theme = useTheme();
@@ -64,24 +90,51 @@ function Dashboard() {
         return () => unsubscribe();
     }, [showOnlyConfigured]);
 
+    useEffect(() => {
+        if (isLocationFilteringEnabled && !userLocation && geolocationStatus !== 'denied' && geolocationStatus !== 'pending') {
+            if (navigator.permissions) {
+                navigator.permissions.query({ name: 'geolocation' }).then(permissionStatus => {
+                    if (permissionStatus.state === 'granted') {
+                        initiateGeolocation();
+                    } else if (permissionStatus.state === 'prompt') {
+                    } else if (permissionStatus.state === 'denied') {
+                        setGeolocationStatus('denied');
+                        localStorage.setItem(LOCATION_PERMISSION_KEY, 'denied');
+                        setIsLocationFilteringEnabled(false);
+                    }
+                });
+            }
+        }
+    }, [isLocationFilteringEnabled, userLocation, geolocationStatus]);
+
+
     const initiateGeolocation = useCallback(() => {
+        setGeolocationStatus('pending');
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    setUserLocation({
+                    const newLocation = {
                         latitude: position.coords.latitude,
                         longitude: position.coords.longitude,
-                    });
+                    };
+                    setUserLocation(newLocation);
                     setGeolocationStatus('granted');
+                    toast.success('Using location for proximity');
                     setIsLocationFilteringEnabled(true);
+                    localStorage.setItem(LOCATION_PERMISSION_KEY, 'granted');
+                    localStorage.setItem(USER_LOCATION_KEY, JSON.stringify(newLocation));
                 },
                 (geoError) => {
                     setUserLocation(null);
-                    setIsLocationFilteringEnabled(false);
-                    const status = geoError.code === geoError.PERMISSION_DENIED ? 'denied' : 'error';
+                    const status: GeolocationStatus = geoError.code === geoError.PERMISSION_DENIED ? 'denied' : 'error';
                     setGeolocationStatus(status);
+                    localStorage.setItem(LOCATION_PERMISSION_KEY, status);
+                    localStorage.removeItem(USER_LOCATION_KEY);
                     if (status === 'error') {
                         toast.error('Failed to get your location. Please try again.');
+                    } else if (status === 'denied') {
+                        toast.error('Please allow location permissions in your browser.');
+                        setIsLocationFilteringEnabled(false);
                     }
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -89,6 +142,8 @@ function Dashboard() {
         } else {
             setGeolocationStatus('error');
             setIsLocationFilteringEnabled(false);
+            localStorage.setItem(LOCATION_PERMISSION_KEY, 'error');
+            localStorage.removeItem(USER_LOCATION_KEY);
             toast.error('Geolocation is not supported by your browser.');
         }
     }, []);
@@ -96,7 +151,9 @@ function Dashboard() {
     const handleGeolocationIconClick = () => {
         if (geolocationStatus === 'pending') {
             return;
-        } else if (geolocationStatus === 'granted') {
+        }
+
+        if (geolocationStatus === 'granted' && userLocation) {
             if (!isLocationFilteringEnabled) {
                 setIsLocationFilteringEnabled(true);
             }
@@ -115,16 +172,21 @@ function Dashboard() {
         setShowGeolocationDialog(false);
         setGeolocationStatus('denied');
         setIsLocationFilteringEnabled(false);
+        localStorage.setItem(LOCATION_PERMISSION_KEY, 'denied');
+        localStorage.removeItem(USER_LOCATION_KEY);
+        toast.error('Proximity filtering disabled as location was denied.');
     };
 
     const handleLocationFilterToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
         const checked = event.target.checked;
         setIsLocationFilteringEnabled(checked);
+
         if (checked) {
-            if (geolocationStatus === 'granted') {
-            } else if (geolocationStatus === 'idle' || geolocationStatus === 'denied' || geolocationStatus === 'error') {
+            if (geolocationStatus === 'granted' && userLocation) {
+            } else if (geolocationStatus !== 'pending') {
                 setShowGeolocationDialog(true);
             }
+        } else {
         }
     };
 
@@ -215,8 +277,12 @@ function Dashboard() {
                 element = <CircularProgress size={20} color="inherit" />;
                 break;
             case 'denied':
+                tooltipTitle = 'Location denied. Click to allow.';
+                iconColor = 'error';
+                element = <LocationDisabledIcon />;
+                break;
             case 'error':
-                tooltipTitle = 'Location unavailable. Click to enable.';
+                tooltipTitle = 'Location error. Click to retry.';
                 iconColor = 'error';
                 element = <LocationDisabledIcon />;
                 break;

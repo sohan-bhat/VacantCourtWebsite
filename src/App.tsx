@@ -3,8 +3,7 @@ import Dashboard from './components/dashboard/Dashboard';
 import CourtDetails from './components/courts/CourtDetails';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { Toaster } from 'react-hot-toast'
 import './styles/App.css';
 
 function App() {
@@ -22,13 +21,17 @@ function App() {
 
                 <Footer />
             </div>
-            <ToastContainer
-                position="top-left"
-                autoClose={3000}
-                hideProgressBar={false}
-                closeOnClick
-                pauseOnHover
-                theme="colored"
+            <Toaster
+                position="top-center"
+                toastOptions={{
+                    duration: 3000,
+                    success: {
+                        iconTheme: { primary: 'green', secondary: 'white' },
+                    },
+                    error: {
+                        iconTheme: { primary: 'red', secondary: 'white' },
+                    },
+                }}
             />
         </Router>
     );

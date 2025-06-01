@@ -23,7 +23,7 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { updateDocument } from '../../services/database/firestoreSerivce';
 import { uploadImage } from '../../services/database/storageService';
 import { Court, SubCourt } from '../../data/courtData';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 
 interface CourtError {
     name?: string;
