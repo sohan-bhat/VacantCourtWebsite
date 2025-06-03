@@ -1,37 +1,38 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import Dashboard from './components/dashboard/Dashboard';
 import CourtDetails from './components/courts/CourtDetails';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import { Toaster } from 'react-hot-toast'
+import { Toaster } from 'react-hot-toast';
 import './styles/App.css';
 import AuthPage from './components/auth/AuthPage';
+import Page404 from './components/layout/Page404';
 
-const AppContent: React.FC = () => {
-    const location = useLocation();
-    const isAuthPage = location.pathname === '/auth';
-
+const LayoutWithHeaderFooter: React.FC = () => {
     return (
         <div className="app-container">
-            {!isAuthPage && <Header />}
-
-            <main className={`app-content ${isAuthPage ? 'auth-page-content' : ''}`}>
-                <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/court/:id" element={<CourtDetails />} />
-                    <Route path="/auth" element={<AuthPage />} />
-                </Routes>
+            <Header />
+            <main className="app-content">
+                <Outlet />
             </main>
-
-            {!isAuthPage && <Footer />}
+            <Footer />
         </div>
     );
-}
+};
+
+const LayoutWithoutHeaderFooter: React.FC = () => {
+    return (
+        <div className="app-container full-page-container">
+            <main className="app-content full-page-content">
+                <Outlet />
+            </main>
+        </div>
+    );
+};
 
 function App() {
     return (
         <Router>
-            <AppContent />
             <Toaster
                 position="top-center"
                 toastOptions={{
@@ -44,6 +45,18 @@ function App() {
                     },
                 }}
             />
+
+            <Routes>
+                <Route element={<LayoutWithHeaderFooter />}>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/court/:id" element={<CourtDetails />} />
+                </Route>
+
+                <Route element={<LayoutWithoutHeaderFooter />}>
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="*" element={<Page404 />} />
+                </Route>
+            </Routes>
         </Router>
     );
 }
