@@ -66,7 +66,7 @@ function Header() {
         try {
             await logout();
             toast.success("Logged out successfully");
-            navigate('/');
+            navigate('/auth');
         } catch (error) {
             toast.error('Failed to log out, please try again');
             console.error("Logout error:", error);
@@ -91,7 +91,7 @@ function Header() {
         try {
             await deleteCurrentUserAccount();
             toast.success("Account deleted successfully.");
-            navigate('/');
+            navigate('/auth');
         } catch (error: any) {
             console.error("Delete account error:", error);
             if (error.code === 'auth/requires-recent-login') {
