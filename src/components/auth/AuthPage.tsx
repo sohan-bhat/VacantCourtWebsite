@@ -1,5 +1,5 @@
 import React, { useState, FormEvent, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import * as Form from '@radix-ui/react-form';
 import toast from 'react-hot-toast';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -8,6 +8,7 @@ import '../../styles/auth/AuthPage.css';
 import { useAuth } from './AuthContext';
 import { FcGoogle } from 'react-icons/fc'
 import { IconButton } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 
 const AuthPage: React.FC = () => {
     const [isLoginView, setIsLoginView] = useState(true);
@@ -127,6 +128,12 @@ const AuthPage: React.FC = () => {
         (authIsLoading === true ? <CircularProgress /> :
             <div className="auth-page-container">
                 <div className="auth-form-wrapper">
+                    <Link to="/" className="auth-back-link" aria-label="Back to Dashboard">
+                        <IconButton component="span" sx={{ color: '#555', '&:hover': { color: '#1e3a8a'} }}>
+                            <ArrowBackIcon />
+                        </IconButton>
+                    </Link>
+
                     <h2>{isLoginView ? 'Login' : 'Sign Up'}</h2>
 
                     <IconButton

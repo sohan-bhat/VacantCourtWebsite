@@ -9,6 +9,7 @@
 }
 
 .auth-form-wrapper {
+    position: relative;
     background-color: #ffffff;
     padding: 30px 40px;
     border-radius: 8px;
@@ -176,4 +177,13 @@
 
 .auth-divider span {
     padding: 0 10px;
+}
+
+.auth-back-link {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
 }
