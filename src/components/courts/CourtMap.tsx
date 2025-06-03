@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import '../../styles/CourtMap.css';
+import '../../styles/courts/CourtMap.css';
 import { CourtCardSummary } from '../../data/courtData';
 import {
     Box,
@@ -42,9 +42,9 @@ const createCustomMapIcon = (isComplexConfigured: boolean, isAvailable: boolean)
 
     let wrapperClass = 'leaflet-marker-icon-wrapper';
     if (!isComplexConfigured) {
-        wrapperClass += ' marker-grayscale'; // Grayscale for not configured
+        wrapperClass += ' marker-grayscale';
     } else if (!isAvailable) {
-        wrapperClass += ' marker-unavailable-strikethrough'; // Strikethrough for configured but unavailable
+        wrapperClass += ' marker-unavailable-strikethrough';
     }
 
     const htmlContent = `
@@ -55,7 +55,7 @@ const createCustomMapIcon = (isComplexConfigured: boolean, isAvailable: boolean)
     `;
 
     return L.divIcon({
-        className: 'custom-leaflet-icon-container', // Keep this if you have styles for it
+        className: 'custom-leaflet-icon-container',
         html: htmlContent,
         iconSize: iconSize,
         iconAnchor: [iconSize[0] / 2, iconSize[1]],
@@ -136,19 +136,17 @@ function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMap
                     />
 
                     {courtsWithCoords.map(court => {
-                        // Determine icon state based on new properties
-                        const isConfigured = court.isComplexConfigured; // Assuming this is passed from Dashboard
+                        const isConfigured = court.isComplexConfigured;
                         const isCurrentlyAvailable = court.available > 0;
 
                         return (
                             <Marker
                                 key={court.id}
                                 position={[court.latitude!, court.longitude!]}
-                                icon={createCustomMapIcon(isConfigured, isCurrentlyAvailable)} // Use updated function
+                                icon={createCustomMapIcon(isConfigured, isCurrentlyAvailable)}
                             >
                                 <Popup>
                                     <strong>{court.name}</strong><br />
-                                    {/* Adjust popup message based on configuration status if desired */}
                                     {!isConfigured
                                         ? `${court.total} total courts (not configured)`
                                         : `${court.available} / ${court.total} courts available`}
@@ -187,7 +185,7 @@ function CourtMap({ courts, userLocation, isProximityFilteringActive }: CourtMap
                                 p: 2,
                                 display: 'flex',
                                 flexDirection: 'column',
-                                height: '100%', // For consistent card height in a row
+                                height: '100%',
                                 borderRadius: 2,
                                 transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                                 '&:hover': {

@@ -1,4 +1,4 @@
-import '../../styles/FilterControls.css';
+import '../../styles/dashboard/FilterControls.css';
 import { Switch, FormControlLabel, Tooltip, useTheme } from '@mui/material';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 

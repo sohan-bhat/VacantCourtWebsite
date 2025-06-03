@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import '../../styles/CourtCard.css';
+import '../../styles/courts/CourtCard.css';
 import { CourtCardSummary } from '../../data/courtData';
 import { CircularProgress, IconButton, Tooltip } from '@mui/material';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest'

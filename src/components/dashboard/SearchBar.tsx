@@ -1,4 +1,4 @@
-import '../../styles/SearchBar.css';
+import '../../styles/dashboard/SearchBar.css';
 
 interface SearchBarProps {
   searchTerm: string;
@@ -13,6 +13,7 @@ function SearchBar({ searchTerm, setSearchTerm }: SearchBarProps) {
         placeholder="Search courts..." 
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
+        autoComplete='off'
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import '../../styles/CourtSchedule.css';
+import '../../styles/courts/CourtSchedule.css';
 
 interface SubCourtForSchedule {
     id: number | string;

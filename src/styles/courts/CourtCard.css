@@ -62,9 +62,8 @@
 }
 
 .availability-status.unconfigured {
-    background-color: #dfe0e0; /* Light grey - more neutral and modern */
-    color: #4f5256;       /* Darker grey text for better contrast */
-    /* Uses the common padding, border-radius, font-size, font-weight from .availability-status */
+    background-color: #dfe0e0;
+    color: #4f5256;
   }
 
 .court-count {

@@ -476,7 +476,7 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                             ))}
                             {(existingImageUrls.length + newImagesToUpload.length) < 5 && !isSubmitting && (
                                 <Box component="label" sx={{ width: { xs: 'calc(50% - 6px)', sm: 150 }, height: { xs: 120, sm: 150 }, border: '2px dashed #ccc', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', cursor: 'pointer', '&:hover': { borderColor: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.04)' } }}>
-                                    <input type="file" hidden accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { handleAddNewImage(file); e.target.value = ''; } }} />
+                                    <input autoComplete='off' type="file" hidden accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { handleAddNewImage(file); e.target.value = ''; } }} />
                                     <AddPhotoAlternateIcon sx={{ fontSize: { xs: 30, sm: 40 }, color: '#666', mb: 1 }} />
                                     <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Add Image</Typography>
                                     <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>(Max 5)</Typography>
