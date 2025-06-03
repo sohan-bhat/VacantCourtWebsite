@@ -23,6 +23,7 @@ import { createDocument } from '../../services/database/firestoreSerivce';
 import toast from 'react-hot-toast';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { uploadImage } from '../../services/database/storageService';
+import { useAuth } from '../auth/AuthContext'
 
 interface SubCourt {
     name: string;
@@ -90,6 +91,8 @@ const initialFormData: CourtFormData = {
 const NOMINATIM_API_URL = 'https://nominatim.openstreetmap.org/search';
 
 export default function AddCourt({ open, onClose }: AddCourtProps) {
+    const { currentUser } = useAuth();
+
     const [formData, setFormData] = useState<CourtFormData>(initialFormData);
     const [amenity, setAmenity] = useState('');
     const [errors, setErrors] = useState<FormErrors>({});
@@ -207,17 +210,29 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
     };
 
     const handleSubmit = async () => {
+        if (!currentUser) {
+            toast.error('You must be logged in to add a facility.');
+            setIsSubmitting(false);
+            return;
+        }
+
         if (!validateForm()) return;
         setIsSubmitting(true);
         setUploadProgress({});
 
         try {
             const uploadedUrls: string[] = [];
+            const initialProgress: Record<string, number> = {};
+            formData.images.forEach(img => initialProgress[img.preview] = 0);
+            setUploadProgress(initialProgress);
+
             for (const image of formData.images) {
                 const url = await uploadImage(
                     image.file,
-                    formData.name,
-                    (progress) => { setUploadProgress(prev => ({ ...prev, [image.preview]: progress.progress })); }
+                    `courts/${currentUser.uid}/${Date.now()}_${image.file.name}`,
+                    (progress) => {
+                        setUploadProgress(prev => ({ ...prev, [image.preview]: progress.progress }));
+                    }
                 );
                 uploadedUrls.push(url);
                 URL.revokeObjectURL(image.preview);
@@ -228,22 +243,29 @@ export default function AddCourt({ open, onClose }: AddCourtProps) {
                 id: typeof c.id === 'string' ? parseInt(c.id) : c.id || Date.now()
             }));
 
-
-            await createDocument('Courts', {
+            const courtDataToSave = {
                 ...formData,
                 courts: courtsToSave,
                 images: uploadedUrls,
                 latitude: selectedAddressOption?.lat ? parseFloat(selectedAddressOption.lat) : undefined,
                 longitude: selectedAddressOption?.lon ? parseFloat(selectedAddressOption.lon) : undefined,
-            });
+                ownerId: currentUser.uid,
+            };
+
+            await createDocument('Courts', courtDataToSave);
 
             toast.success('Facility added successfully!');
             onClose();
         } catch (error) {
             console.error('Error adding facility:', error);
-            toast.error('Failed to add facility. Please try again.');
+            if ((error as any)?.code?.startsWith('storage/')) {
+                 toast.error(`Image upload failed: ${(error as any).message}`);
+            } else {
+                toast.error('Failed to add facility. Please try again.');
+            }
         } finally {
             setIsSubmitting(false);
+            setUploadProgress({});
         }
     };
 

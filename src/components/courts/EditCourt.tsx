@@ -23,6 +23,7 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { updateDocument } from '../../services/database/firestoreSerivce';
 import { uploadImage } from '../../services/database/storageService';
 import { Court, SubCourt } from '../../data/courtData';
+import { useAuth } from '../auth/AuthContext';
 import toast from 'react-hot-toast';
 
 interface CourtError {
@@ -65,6 +66,8 @@ interface CourtFormData {
 const NOMINATIM_API_URL = 'https://nominatim.openstreetmap.org/search';
 
 export default function EditCourt({ open, onClose, court }: EditCourtProps) {
+    const { currentUser } = useAuth();
+
     const [formData, setFormData] = useState<CourtFormData | null>(null);
     const [amenityInput, setAmenityInput] = useState('');
     const [errors, setErrors] = useState<FormErrors>({});
@@ -278,7 +281,20 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
     };
 
     const handleSubmit = async () => {
-        if (!validateForm() || !formData || !court) return;
+        if (!currentUser) {
+            toast.error('You must be logged in to edit a facility.');
+            setIsSubmitting(false);
+            return;
+        }
+
+        if (!court || currentUser.uid !== court.ownerId) {
+            toast.error('You are not authorized to edit this facility.');
+            setIsSubmitting(false);
+            onClose();
+            return;
+        }
+
+        if (!validateForm() || !formData ) return;
         setIsSubmitting(true);
         setUploadProgress({});
 
@@ -286,7 +302,8 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
             const uploadedNewImageUrls: string[] = [];
             for (const image of newImagesToUpload) {
                 const url = await uploadImage(
-                    image.file, formData.name,
+                    image.file,
+                    `courts/${court.ownerId}/${court.id}/${Date.now()}_${image.file.name}`,
                     (progress) => { setUploadProgress(prev => ({ ...prev, [image.preview]: progress.progress })); }
                 );
                 uploadedNewImageUrls.push(url);
@@ -300,15 +317,23 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                 id: typeof c.id === 'string' ? parseInt(c.id) : c.id || Date.now()
             }));
 
-
             const updatedCourtData = {
-                ...formData,
+                name: formData.name,
+                type: formData.type,
+                location: formData.location,
+                address: formData.address,
+                phone: formData.phone,
+                hours: formData.hours,
+                amenities: formData.amenities,
                 courts: courtsToSave,
+                description: formData.description,
                 images: finalImageUrls,
-                latitude: selectedAddressOption?.lat ? parseFloat(selectedAddressOption.lat) : undefined,
-                longitude: selectedAddressOption?.lon ? parseFloat(selectedAddressOption.lon) : undefined,
+                latitude: selectedAddressOption?.lat ? parseFloat(selectedAddressOption.lat) : formData.latitude,
+                longitude: selectedAddressOption?.lon ? parseFloat(selectedAddressOption.lon) : formData.longitude,
             };
+
             await updateDocument('Courts', court.id, updatedCourtData);
+
 
             toast.success('Facility updated successfully!');
             onClose();

@@ -33,6 +33,19 @@ import PlaceIcon from '@mui/icons-material/Place';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { useAuth } from '../auth/AuthContext';
+import { deleteDocument } from '../../services/database/firestoreSerivce';
+import { useNavigate } from 'react-router-dom';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import {
+    Dialog as ConfirmationDialog,
+    DialogActions as ConfirmationDialogActions,
+    DialogContent as ConfirmationDialogContent,
+    DialogContentText as ConfirmationDialogContentText,
+    DialogTitle as ConfirmationDialogTitle,
+} from '@mui/material';
+import toast from 'react-hot-toast';
+
 
 
 interface TabPanelProps {
@@ -74,12 +87,14 @@ function a11yProps(index: number) {
 
 
 function CourtDetails() {
+    const { currentUser } = useAuth();
     const { id } = useParams<{ id: string }>();
     const [courtDetails, setCourtDetails] = useState<Court | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState(0);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
     const [editModalOpen, setEditModalOpen] = useState(false);
 
@@ -89,6 +104,8 @@ function CourtDetails() {
     const imagePanelRef = useRef<HTMLDivElement>(null);
     const detailsPanelRef = useRef<HTMLDivElement>(null);
     const [panelsMinHeight, setPanelsMinHeight] = useState<number | 'auto'>('auto');
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!id) {
@@ -138,12 +155,49 @@ function CourtDetails() {
         }
     }, [courtDetails, isMobileView, activeTab]);
 
+    const isOwner = currentUser && courtDetails && currentUser.uid === courtDetails.ownerId;
+
     const handleOpenEditModal = () => {
+        if (!isOwner) {
+            toast.error("You are not authorized to edit this facility.");
+            return;
+        }
         setEditModalOpen(true);
     };
 
+
     const handleCloseEditModal = () => {
         setEditModalOpen(false);
+    };
+
+    const handleOpenDeleteConfirm = () => {
+        if (!isOwner) {
+            toast.error("You are not authorized to delete this facility.");
+            return;
+        }
+        setDeleteConfirmOpen(true);
+    };
+
+    const handleCloseDeleteConfirm = () => {
+        setDeleteConfirmOpen(false);
+    };
+
+    const handleDeleteCourt = async () => {
+        if (!isOwner || !courtDetails || !id) {
+            toast.error("Cannot delete facility. Authorization or data missing.");
+            setDeleteConfirmOpen(false);
+            return;
+        }
+        try {
+            await deleteDocument('Courts', id);
+            toast.success('Facility deleted successfully.');
+            navigate('/');
+        } catch (error) {
+            console.error("Error deleting facility:", error);
+            toast.error('Failed to delete facility. Please try again.');
+        } finally {
+            setDeleteConfirmOpen(false);
+        }
     };
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -259,9 +313,16 @@ function CourtDetails() {
                             </Box>
                         }
                     </Box>
-                    <IconButton onClick={handleOpenEditModal} color="primary" aria-label="edit court" sx={{ flexShrink: 0 }}>
-                        <EditIcon />
-                    </IconButton>
+                    {isOwner && (
+                        <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+                            <IconButton onClick={handleOpenEditModal} color="primary" aria-label="edit court" sx={{ border: `1px solid ${theme.palette.primary.main}`, borderRadius: '8px', p: 0.75 }}>
+                                <EditIcon />
+                            </IconButton>
+                            <IconButton onClick={handleOpenDeleteConfirm} color="error" aria-label="delete court" sx={{ border: `1px solid ${theme.palette.error.main}`, borderRadius: '8px', p: 0.75 }}>
+                                <DeleteForeverIcon />
+                            </IconButton>
+                        </Box>
+                    )}
                 </Box>
 
                 {isMobileView && (
@@ -377,7 +438,7 @@ function CourtDetails() {
                                 </Box>
 
                                 {courtDetails.amenities && courtDetails.amenities.length > 0 && (
-                                    <Box sx={{ p: { xs: 2, sm: 2.5 }}}>
+                                    <Box sx={{ p: { xs: 2, sm: 2.5 } }}>
                                         <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{
                                             fontSize: '1.1rem', fontWeight: 600
                                         }}>
@@ -531,6 +592,30 @@ function CourtDetails() {
                     court={courtDetails}
                 />
             )}
+
+            <ConfirmationDialog
+                open={deleteConfirmOpen}
+                onClose={handleCloseDeleteConfirm}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <ConfirmationDialogTitle id="alert-dialog-title">
+                    {"Confirm Deletion"}
+                </ConfirmationDialogTitle>
+                <ConfirmationDialogContent>
+                    <ConfirmationDialogContentText id="alert-dialog-description">
+                        Are you sure you want to delete the facility "{courtDetails?.name}"? This action cannot be undone.
+                    </ConfirmationDialogContentText>
+                </ConfirmationDialogContent>
+                <ConfirmationDialogActions>
+                    <Button onClick={handleCloseDeleteConfirm} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleDeleteCourt} color="error" autoFocus>
+                        Delete
+                    </Button>
+                </ConfirmationDialogActions>
+            </ConfirmationDialog>
         </>
     );
 }

@@ -27,6 +27,7 @@ export interface Court {
     images: string[];
     latitude?: number;
     longitude?: number;
+    ownerId: string
 }
 
 export interface CourtCardSummary {
