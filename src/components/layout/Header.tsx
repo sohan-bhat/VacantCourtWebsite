@@ -108,7 +108,7 @@ function Header() {
             <div className="header-container">
                 <nav className='main-nav'>
                     <Link to="/" className="logo-link">
-                        <img src='/ground.svg' alt="Vacant Court Logo" className="header-logo-img" />
+                        <img src='/ground.png' alt="Vacant Court Logo" className="header-logo-img" />
                         <span className="header-logo-text">Vacant Court</span>
                     </Link>
                 </nav>
