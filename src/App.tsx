@@ -1,38 +1,46 @@
-import { BrowserRouter as Router, Routes, Route, useLocation, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Outlet, useMatch } from 'react-router-dom';
 import Dashboard from './components/dashboard/Dashboard';
 import CourtDetails from './components/courts/CourtDetails';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast'
 import './styles/App.css';
 import AuthPage from './components/auth/AuthPage';
 import Page404 from './components/layout/Page404';
 
-const LayoutWithHeaderFooter: React.FC = () => {
+const AppContent: React.FC = () => {
+    const location = useLocation();
+
+    const onDashboard = useMatch({ path: "/", end: true });
+    const onCourtDetails = useMatch("/court/:id");
+
+    const showHeaderAndFooter = !!(onDashboard || onCourtDetails);
+
+    const isAuthPage = location.pathname === '/auth';
+    const mainContentClass = `app-content ${isAuthPage ? 'auth-page-content' : ''}`;
+
     return (
         <div className="app-container">
-            <Header />
-            <main className="app-content">
-                <Outlet />
-            </main>
-            <Footer />
-        </div>
-    );
-};
+            {showHeaderAndFooter && <Header />}
 
-const LayoutWithoutHeaderFooter: React.FC = () => {
-    return (
-        <div className="app-container full-page-container">
-            <main className="app-content full-page-content">
-                <Outlet />
+            <main className={mainContentClass}>
+                <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/court/:id" element={<CourtDetails />} />
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="*" element={<Page404 />} />
+                </Routes>
             </main>
+
+            {showHeaderAndFooter && <Footer />}
         </div>
     );
-};
+}
 
 function App() {
     return (
         <Router>
+            <AppContent />
             <Toaster
                 position="top-center"
                 toastOptions={{
@@ -45,18 +53,6 @@ function App() {
                     },
                 }}
             />
-
-            <Routes>
-                <Route element={<LayoutWithHeaderFooter />}>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/court/:id" element={<CourtDetails />} />
-                </Route>
-
-                <Route element={<LayoutWithoutHeaderFooter />}>
-                    <Route path="/auth" element={<AuthPage />} />
-                    <Route path="*" element={<Page404 />} />
-                </Route>
-            </Routes>
         </Router>
     );
 }
