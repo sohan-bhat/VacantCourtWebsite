@@ -34,7 +34,7 @@ import DirectionsIcon from '@mui/icons-material/Directions';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useAuth } from '../auth/AuthContext';
-import { deleteDocument } from '../../services/database/firestoreSerivce';
+import { deleteDocument } from '../../services/firestoreSerivce';
 import { useNavigate } from 'react-router-dom';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import {

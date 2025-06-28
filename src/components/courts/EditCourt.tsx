@@ -20,8 +20,8 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import { updateDocument } from '../../services/database/firestoreSerivce';
-import { uploadImage } from '../../services/database/storageService';
+import { updateDocument } from '../../services/firestoreSerivce';
+import { uploadImage } from '../../services/storageService';
 import { Court, SubCourt } from '../../data/courtData';
 import { useAuth } from '../auth/AuthContext';
 import toast from 'react-hot-toast';

@@ -68,7 +68,7 @@ export const handler: Handler = schedule('* * * * *', async () => {
                 const courtInfo = availableCourts.get(courtId)!;
 
                 const emailPromise = resend.emails.send({
-                    from: 'VacantCourt <notify@your-verified-domain.com>',
+                    from: 'sohanrambhatdev@gmail.com',
                     to: [requestData.userEmail],
                     subject: `A court is now available at ${courtInfo.name}!`,
                     html: `<p>Hello!</p><p>A court (${courtInfo.availableSubCourts.join(', ')}) has just become available at <strong>${courtInfo.name}</strong>.</p><p>Head to VacantCourt to check it out!</p>`,

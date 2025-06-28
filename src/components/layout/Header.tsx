@@ -26,7 +26,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 import '../../styles/layout/Header.css';
 import { useAuth } from '../auth/AuthContext';
-import { deleteCurrentUserAccount } from '../../services/database/authService';
+import { deleteCurrentUserAccount } from '../../services/authService';
 import toast from 'react-hot-toast';
 
 function Header() {

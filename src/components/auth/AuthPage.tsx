@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import * as Form from '@radix-ui/react-form';
 import toast from 'react-hot-toast';
 import CircularProgress from '@mui/material/CircularProgress';
-import { signUpWithEmail, loginWithEmail, signInWithGoogle } from '../../services/database/authService';
+import { signUpWithEmail, loginWithEmail, signInWithGoogle } from '../../services/authService';
 import '../../styles/auth/AuthPage.css';
 import { useAuth } from './AuthContext';
 import { FcGoogle } from 'react-icons/fc'
