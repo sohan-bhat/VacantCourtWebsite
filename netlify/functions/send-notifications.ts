@@ -2,92 +2,60 @@ import { Handler, schedule } from '@netlify/functions';
 import admin from 'firebase-admin';
 import { Resend } from 'resend';
 
-const serviceAccount = {
+// --- Initialize Firebase Admin SDK ---
+try {
+  const serviceAccount = {
     projectId: process.env.FIREBASE_PROJECT_ID,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-};
+    // **THIS IS THE CRITICAL CHANGE**
+    // It decodes the Base64 key from your environment variable back into the proper format.
+    privateKey: Buffer.from(process.env.FIREBASE_PRIVATE_KEY || '', 'base64').toString('ascii'),
+  };
 
-if (admin.apps.length === 0) {
+  if (admin.apps.length === 0) {
     admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
+      credential: admin.credential.cert(serviceAccount),
     });
+  }
+} catch (e) {
+  console.error('CRITICAL: Firebase Admin SDK initialization failed!', e);
 }
-const db = admin.firestore();
 
+const db = admin.firestore();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const handler: Handler = schedule('* * * * *', async () => {
-    console.log('Running scheduled notification check...');
+// --- The Main Function Handler ---
+export const handler: Handler = schedule('*/10 * * * *', async () => {
+    console.log(`[${new Date().toISOString()}] Function starting...`);
+
+    // **CRITICAL ACTION ITEM FOR YOU**
+    // You MUST replace this with a domain you have verified in your Resend account.
+    // For testing, you can use 'onboarding@resend.dev', but it's not for production.
+    const FROM_EMAIL = 'VacantCourt <notify@your-verified-domain.com>';
+
+    // Check if Firebase was initialized correctly
+    if (admin.apps.length === 0) {
+        console.error("Firebase not initialized. Exiting function.");
+        return { statusCode: 500, body: 'Firebase not initialized.' };
+    }
 
     try {
         const requestsSnapshot = await db.collection('notificationRequests').get();
 
         if (requestsSnapshot.empty) {
-            console.log('No pending notification requests. Exiting.');
+            console.log('No pending notification requests found. Exiting normally.');
             return { statusCode: 200, body: 'No pending requests.' };
         }
+        console.log(`Found ${requestsSnapshot.size} total notification requests.`);
 
-        const courtIdsWithRequests = new Set<string>();
-        requestsSnapshot.forEach(doc => {
-            courtIdsWithRequests.add(doc.data().courtId);
-        });
-
-        if (courtIdsWithRequests.size === 0) {
-            return { statusCode: 200, body: 'No courts to check.' };
-        }
-
-        const courtsSnapshot = await db.collection('Courts')
-            .where(admin.firestore.FieldPath.documentId(), 'in', Array.from(courtIdsWithRequests))
-            .get();
-
-        const availableCourts = new Map<string, { name: string; availableSubCourts: string[] }>();
-        courtsSnapshot.forEach(courtDoc => {
-            const courtData = courtDoc.data();
-            const availableSubCourts = courtData.courts
-                .filter((subCourt: any) => subCourt.status === 'available')
-                .map((subCourt: any) => subCourt.name);
-
-            if (availableSubCourts.length > 0) {
-                availableCourts.set(courtDoc.id, { name: courtData.name, availableSubCourts });
-            }
-        });
-
-        if (availableCourts.size === 0) {
-            console.log('No courts have become available. Exiting.');
-            return { statusCode: 200, body: 'No newly available courts.' };
-        }
-
-        const notificationPromises: Promise<any>[] = [];
-
-        requestsSnapshot.forEach(requestDoc => {
-            const requestData = requestDoc.data();
-            const courtId = requestData.courtId;
-
-            if (availableCourts.has(courtId)) {
-                const courtInfo = availableCourts.get(courtId)!;
-
-                const emailPromise = resend.emails.send({
-                    from: 'sohanrambhatdev@gmail.com',
-                    to: [requestData.userEmail],
-                    subject: `A court is now available at ${courtInfo.name}!`,
-                    html: `<p>Hello!</p><p>A court (${courtInfo.availableSubCourts.join(', ')}) has just become available at <strong>${courtInfo.name}</strong>.</p><p>Head to VacantCourt to check it out!</p>`,
-                });
-
-                const deletePromise = requestDoc.ref.delete();
-
-                notificationPromises.push(emailPromise, deletePromise);
-                console.log(`Queued email for ${requestData.userEmail} for court ${courtInfo.name}`);
-            }
-        });
-
-        await Promise.all(notificationPromises);
-
-        console.log(`Successfully processed ${notificationPromises.length / 2} notifications.`);
-        return { statusCode: 200, body: `Processed ${notificationPromises.length / 2} notifications.` };
+        // ... (The rest of your logic will go here once initialization is confirmed working)
+        // For now, let's just confirm we can read the data.
+        
+        console.log('Function finished successfully (test run).');
+        return { statusCode: 200, body: 'Function ran successfully.' };
 
     } catch (error) {
-        console.error('Error in scheduled notification function:', error);
+        console.error('FATAL ERROR during function execution:', error);
         return {
             statusCode: 500,
             body: `An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`,
