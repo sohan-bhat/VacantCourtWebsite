@@ -2,4 +2,4 @@
 directory = "netlify/functions/"
 
 [functions.cron]
-schedule = "* * * * * *"
+schedule = "*/1 * * * *"
