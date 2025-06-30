@@ -60,33 +60,7 @@ function Header() {
         navigate('/account');
         handleMenuClose();
     };
-
-    useEffect(() => {
-        if (import.meta.env.VITE_FIREBASE_PROJECT_ID) {
-            console.log('SUCCESS: FIREBASE_PROJECT_ID is loaded.');
-        } else {
-            console.log('ERROR: FIREBASE_PROJECT_ID is MISSING!');
-        }
-
-        if (import.meta.env.FIREBASE_CLIENT_EMAIL) {
-            console.log('SUCCESS: FIREBASE_CLIENT_EMAIL is loaded.');
-        } else {
-            console.log('ERROR: FIREBASE_CLIENT_EMAIL is MISSING!');
-        }
-
-        if (import.meta.env.FIREBASE_PRIVATE_KEY) {
-            console.log('SUCCESS: FIREBASE_PRIVATE_KEY is loaded.');
-        } else {
-            console.log('ERROR: FIREBASE_PRIVATE_KEY is MISSING!');
-        }
-
-        if (import.meta.env.RESEND_API_KEY) {
-            console.log('SUCCESS: RESEND_API_KEY is loaded.');
-        } else {
-            console.log('ERROR: RESEND_API_KEY is MISSING!');
-        }
-    }, []);
-
+    
     const handleLogout = async () => {
         handleMenuClose();
         try {
