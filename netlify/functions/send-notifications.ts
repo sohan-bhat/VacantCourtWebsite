@@ -62,7 +62,6 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 //         };
 //     }
 // });
-
 export const handler: Handler = schedule('*/10 * * * *', async () => {
     console.log('--- Starting Environment Variable Check ---');
   
