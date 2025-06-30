@@ -38,7 +38,7 @@ exports.handler = async function(event, context) {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] Starting notification check...`);
 
-  const FROM_EMAIL = 'sohanrambhatdev@gmail.com';
+  const FROM_EMAIL = 'VacantCourt <onboarding@resend.dev>';
 
   if (!firebaseInitialized || !db) {
     console.error(`[${timestamp}] Exiting: Firebase not initialized.`);
