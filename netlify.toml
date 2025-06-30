@@ -1,20 +1,11 @@
-# This file configures your Netlify site and functions.
-
 [dev]
-  # The command to run to start the dev server (your original dev command)
   command = "npm run start"
-  # The port for the dev server
   targetPort = 5173 # Vite's default port
   port = 8888
   framework = "vite"
 
-# This section tells Netlify where your serverless functions are located.
-[functions]
-  directory = "netlify/functions/"
+[build]
+  functions = "netlify/functions/"
 
-# This section defines your scheduled function (cron job).
-# The name "send-notifications" must match your function's filename.
-[functions."send-notifications"]
-  # This is a cron expression. "*/10 * * * *" means "run every 10 minutes".
-  # You can adjust this schedule. For testing, you might use "* * * * *" (every minute).
+[functions.cron]
   schedule = "*/10 * * * *"
