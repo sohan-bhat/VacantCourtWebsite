@@ -142,7 +142,13 @@ function NotificationButton({ court }: NotificationButtonProps) {
                 <DialogTitle>Confirm Notification</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Do you want to be notified by email when a court at <strong>{court.name}</strong> becomes available?
+                        Do you want to be notified by email when a court at <i>{court.name}</i> becomes available?
+                    </DialogContentText>
+                    <DialogContentText color="inherit" noWrap>
+                        &nbsp;
+                    </DialogContentText>
+                    <DialogContentText>
+                        <strong>Note:</strong> there is a 1-5min delay to notify you after the facility becomes available.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -230,18 +236,18 @@ function CourtCard({
                                     <h3 className="court-name" style={{ margin: '0 0 10px 0', flexGrow: 1, opacity: court.isComplexConfigured ? 1 : 0.7 }}>
                                         {court.name}
                                     </h3>
-                                    
+
                                     {court.isComplexConfigured && court.available === 0 && (
                                         <NotificationButton court={court} />
                                     )}
-                                    
+
                                     {!court.isComplexConfigured && (
                                         <Tooltip title="This facility's courts are not yet configured in the system.">
                                             <SettingsSuggestIcon color="disabled" sx={{ mb: 1.5 }} />
                                         </Tooltip>
                                     )}
                                 </div>
-                                
+
                                 <p className="court-type" style={{ opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.type}</p>
                                 <p className="court-location" style={{ opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.location}</p>
 
