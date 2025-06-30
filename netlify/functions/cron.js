@@ -26,7 +26,7 @@ const db = firebaseInitialized ? admin.firestore() : null;
 
 exports.handler = async function(event, context) {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] Starting notification check with EmailJS...`);
+  console.log(`[${timestamp}] Starting precise notification check...`);
 
   if (!firebaseInitialized || !db) {
     console.error(`[${timestamp}] Exiting: Firebase not initialized.`);
@@ -41,7 +41,7 @@ exports.handler = async function(event, context) {
 
   if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY || !PRIVATE_KEY || !SITE_BASE_URL) {
     console.error(`[${timestamp}] Exiting: Missing one or more EmailJS environment variables.`);
-    return { statusCode: 500, body: 'EmailJS environment variables are not fully configured.' };
+    return { statusCode: 500, body: 'EmailJS environment variables not fully configured.' };
   }
 
   try {
@@ -50,64 +50,72 @@ exports.handler = async function(event, context) {
       console.log(`[${timestamp}] No pending requests found. Exiting.`);
       return { statusCode: 200, body: 'No pending requests.' };
     }
-    console.log(`[${timestamp}] Found ${requestsSnapshot.size} total requests.`);
-
-    const courtIdsWithRequests = [...new Set(requestsSnapshot.docs.map(doc => doc.data().courtId))];
-    const courtsSnapshot = await db.collection('Courts').where(admin.firestore.FieldPath.documentId(), 'in', courtIdsWithRequests).get();
-    const availableCourts = new Map();
-
-    courtsSnapshot.forEach(courtDoc => {
-      const courtData = courtDoc.data();
-      const availableSubCourts = courtData.courts.filter(sc => sc.status === 'available').map(sc => sc.name);
-      if (availableSubCourts.length > 0) {
-        availableCourts.set(courtDoc.id, { name: courtData.name, availableSubCourtNames: availableSubCourts });
-      }
-    });
-
-    if (availableCourts.size === 0) {
-      console.log(`[${timestamp}] No requested courts have become available. Exiting.`);
-      return { statusCode: 200, body: 'No newly available courts.' };
-    }
-    console.log(`[${timestamp}] Found ${availableCourts.size} courts that are now available.`);
+    console.log(`[${timestamp}] Found ${requestsSnapshot.size} total requests to process.`);
 
     const successfulDeletes = [];
     let emailsSent = 0;
     
     for (const requestDoc of requestsSnapshot.docs) {
       const requestData = requestDoc.data();
-      const courtId = requestData.courtId;
+      const { courtId, userEmail } = requestData;
 
-      if (availableCourts.has(courtId)) {
-        const courtInfo = availableCourts.get(courtId);
+      if (!courtId || !userEmail) {
+        console.log(`Skipping invalid request document: ${requestDoc.id}`);
+        continue;
+      }
+      
+      console.log(`\n--- Checking request for User: ${userEmail} | Court ID: ${courtId} ---`);
 
+      const courtRef = db.collection('Courts').doc(courtId);
+      const courtDoc = await courtRef.get();
+
+      if (!courtDoc.exists) {
+        console.log(`Court ${courtId} does not exist. Deleting stale request.`);
+        successfulDeletes.push(requestDoc.ref.delete());
+        continue;
+      }
+
+      const courtData = courtDoc.data();
+      const availableSubCourts = (courtData.courts || []).filter(sc => sc.status === 'available');
+
+      if (availableSubCourts.length > 0) {
+        const availableSubCourtNames = availableSubCourts.map(sc => sc.name);
+        console.log(`CONDITION MET: Court "${courtData.name}" is available. Sub-courts: [${availableSubCourtNames.join(', ')}].`);
+        
         const templateParams = {
-          to_email: requestData.userEmail,
-          court_name: courtInfo.name,
-          sub_court_names: courtInfo.availableSubCourtNames.join(', '),
+          to_email: userEmail,
+          court_name: courtData.name,
+          sub_court_names: availableSubCourtNames.join(', '),
           court_url: `${SITE_BASE_URL}/court/${courtId}`,
         };
 
-        console.log(`Attempting to send email via EmailJS to: ${requestData.userEmail}`);
-        
         try {
+          console.log(`Attempting to send email via EmailJS to: ${userEmail}`);
           await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, {
             publicKey: PUBLIC_KEY,
             privateKey: PRIVATE_KEY,
           });
 
-          console.log(`SUCCESS sending email to ${requestData.userEmail}.`);
+          console.log(`SUCCESS sending email to ${userEmail}.`);
           emailsSent++;
           successfulDeletes.push(requestDoc.ref.delete());
 
         } catch (err) {
-          console.error(`ERROR sending EmailJS email to ${requestData.userEmail}:`, err);
+          console.error(`ERROR sending EmailJS email to ${userEmail}:`, err);
         }
+
+      } else {
+        console.log(`Condition NOT met: Court "${courtData.name}" is still in-use. Request will remain.`);
       }
     }
 
-    await Promise.all(successfulDeletes);
-    console.log(`[${timestamp}] Successfully processed ${emailsSent} notifications. Deleted ${successfulDeletes.length} requests.`);
-    return { statusCode: 200, body: `Processed ${emailsSent} notifications.` };
+    if (successfulDeletes.length > 0) {
+      await Promise.all(successfulDeletes);
+      console.log(`\n[${timestamp}] Cleaned up ${successfulDeletes.length} fulfilled requests.`);
+    }
+    
+    console.log(`[${timestamp}] Finished run. Sent ${emailsSent} emails.`);
+    return { statusCode: 200, body: `Processed ${requestsSnapshot.size} requests. Sent ${emailsSent} emails.` };
 
   } catch (error) {
     console.error(`[${timestamp}] FATAL ERROR during execution:`, error);
