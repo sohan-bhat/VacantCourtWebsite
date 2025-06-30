@@ -1,5 +1,2 @@
-[build]
-functions = "netlify/functions/"
-
 [functions.cron]
-schedule = "*/10 * * * *"
+schedule = "* * * * * *"

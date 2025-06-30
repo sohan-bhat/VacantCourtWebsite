@@ -1,11 +1,10 @@
-exports.handler = async (event, context) => {
+exports.handler = async function(event, context) {
     const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] Hello from the PLAIN JAVASCRIPT file!`);
-    console.log('If you see this log, the problem is 100% the TypeScript build process.');
-    console.log('We can now fix it.');
+    console.log(`[${timestamp}] EXECUTING FROM CRON.JS`);
+    console.log("SUCCESS: If you see this, the deploy and schedule are working.");
   
     return {
       statusCode: 200,
-      body: 'Plain JavaScript function executed successfully.',
+      body: "Cron function ran successfully from cron.js.",
     };
-};
+  };
