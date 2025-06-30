@@ -76,7 +76,7 @@ exports.handler = async function(event, context) {
       }
 
       const courtData = courtDoc.data();
-      const availableSubCourts = (courtData.courts || []).filter(sc => sc.status === 'available');
+      const availableSubCourts = (courtData.courts || []).filter(sc => sc.isConfigured && sc.status === 'available');
 
       if (availableSubCourts.length > 0) {
         const availableSubCourtNames = availableSubCourts.map(sc => sc.name);
