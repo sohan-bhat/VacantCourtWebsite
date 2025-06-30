@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthUserChanged, AppUser, logoutUser as serviceLogout } from '../../services/database/authService';
+import { onAuthUserChanged, AppUser, logoutUser as serviceLogout } from '../../services/authService';
 import { Unsubscribe } from 'firebase/auth';
 
 interface AuthContextType {

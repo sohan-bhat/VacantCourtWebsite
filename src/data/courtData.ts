@@ -2,7 +2,7 @@ import {
     listenToQuery,
     getDocument as getFirestoreDocument,
     listenToDocument
-} from "../services/database/firestoreSerivce";
+} from "../services/firestoreSerivce";
 import type { Unsubscribe } from 'firebase/firestore';
 
 export interface SubCourt {

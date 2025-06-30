@@ -19,10 +19,10 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { createDocument } from '../../services/database/firestoreSerivce';
+import { createDocument } from '../../services/firestoreSerivce';
 import toast from 'react-hot-toast';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import { uploadImage } from '../../services/database/storageService';
+import { uploadImage } from '../../services/storageService';
 import { useAuth } from '../auth/AuthContext'
 
 interface SubCourt {
