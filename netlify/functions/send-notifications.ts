@@ -25,40 +25,76 @@ const db = admin.firestore();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // --- The Main Function Handler ---
-export const handler: Handler = schedule('*/10 * * * *', async () => {
-    console.log(`[${new Date().toISOString()}] Function starting...`);
+// export const handler: Handler = schedule('*/10 * * * *', async () => {
+//     console.log(`[${new Date().toISOString()}] Function starting...`);
 
-    // **CRITICAL ACTION ITEM FOR YOU**
-    // You MUST replace this with a domain you have verified in your Resend account.
-    // For testing, you can use 'onboarding@resend.dev', but it's not for production.
-    const FROM_EMAIL = 'VacantCourt <notify@your-verified-domain.com>';
+//     // **CRITICAL ACTION ITEM FOR YOU**
+//     // You MUST replace this with a domain you have verified in your Resend account.
+//     // For testing, you can use 'onboarding@resend.dev', but it's not for production.
+//     const FROM_EMAIL = 'VacantCourt <notify@your-verified-domain.com>';
 
-    // Check if Firebase was initialized correctly
-    if (admin.apps.length === 0) {
-        console.error("Firebase not initialized. Exiting function.");
-        return { statusCode: 500, body: 'Firebase not initialized.' };
-    }
+//     // Check if Firebase was initialized correctly
+//     if (admin.apps.length === 0) {
+//         console.error("Firebase not initialized. Exiting function.");
+//         return { statusCode: 500, body: 'Firebase not initialized.' };
+//     }
 
-    try {
-        const requestsSnapshot = await db.collection('notificationRequests').get();
+//     try {
+//         const requestsSnapshot = await db.collection('notificationRequests').get();
 
-        if (requestsSnapshot.empty) {
-            console.log('No pending notification requests found. Exiting normally.');
-            return { statusCode: 200, body: 'No pending requests.' };
-        }
-        console.log(`Found ${requestsSnapshot.size} total notification requests.`);
+//         if (requestsSnapshot.empty) {
+//             console.log('No pending notification requests found. Exiting normally.');
+//             return { statusCode: 200, body: 'No pending requests.' };
+//         }
+//         console.log(`Found ${requestsSnapshot.size} total notification requests.`);
 
-        // ... (The rest of your logic will go here once initialization is confirmed working)
-        // For now, let's just confirm we can read the data.
+//         // ... (The rest of your logic will go here once initialization is confirmed working)
+//         // For now, let's just confirm we can read the data.
         
-        console.log('Function finished successfully (test run).');
-        return { statusCode: 200, body: 'Function ran successfully.' };
+//         console.log('Function finished successfully (test run).');
+//         return { statusCode: 200, body: 'Function ran successfully.' };
 
-    } catch (error) {
-        console.error('FATAL ERROR during function execution:', error);
-        return {
-            statusCode: 500,
-            body: `An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        };
+//     } catch (error) {
+//         console.error('FATAL ERROR during function execution:', error);
+//         return {
+//             statusCode: 500,
+//             body: `An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`,
+//         };
+//     }
+// });
+
+export const handler: Handler = schedule('*/10 * * * *', async () => {
+    console.log('--- Starting Environment Variable Check ---');
+  
+    // Check each required variable
+    if (process.env.FIREBASE_PROJECT_ID) {
+      console.log('SUCCESS: FIREBASE_PROJECT_ID is loaded.');
+    } else {
+      console.log('ERROR: FIREBASE_PROJECT_ID is MISSING!');
     }
-});
+  
+    if (process.env.FIREBASE_CLIENT_EMAIL) {
+      console.log('SUCCESS: FIREBASE_CLIENT_EMAIL is loaded.');
+    } else {
+      console.log('ERROR: FIREBASE_CLIENT_EMAIL is MISSING!');
+    }
+  
+    if (process.env.FIREBASE_PRIVATE_KEY) {
+      console.log('SUCCESS: FIREBASE_PRIVATE_KEY is loaded.');
+    } else {
+      console.log('ERROR: FIREBASE_PRIVATE_KEY is MISSING!');
+    }
+  
+    if (process.env.RESEND_API_KEY) {
+      console.log('SUCCESS: RESEND_API_KEY is loaded.');
+    } else {
+      console.log('ERROR: RESEND_API_KEY is MISSING!');
+    }
+  
+    console.log('--- Environment Variable Check Complete ---');
+  
+    return {
+      statusCode: 200,
+      body: 'Variable check executed.',
+    };
+  });
