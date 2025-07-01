@@ -11,12 +11,26 @@ import {
     DialogContent,
     DialogContentText,
     DialogActions,
-    Button
+    Button,
+    Box,
+    Paper,
+    RadioGroup,
+    FormControlLabel,
+    Radio,
+    TextField,
+    Typography,
+    Chip,
+    FormControl,
+    FormLabel
 } from '@mui/material';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest'
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import toast from 'react-hot-toast';
+import EmailIcon from '@mui/icons-material/Email';
+import SmsIcon from '@mui/icons-material/Sms';
+
+import { MuiTelInput, matchIsValidTel } from 'mui-tel-input';
 
 import { useAuth } from '../auth/AuthContext';
 import { addNotificationRequest, getNotificationRequestForUser, removeNotificationRequest } from '../../services/notificationService';
@@ -35,6 +49,8 @@ function NotificationButton({ court }: NotificationButtonProps) {
     const [requestId, setRequestId] = useState<string | null>(null);
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     const [isAuthModalOpen, setAuthModalOpen] = useState(false);
+    const [notificationMethod, setNotificationMethod] = useState('email');
+    const [phoneNumber, setPhoneNumber] = useState('');
 
     useEffect(() => {
         if (!currentUser) {
@@ -74,25 +90,35 @@ function NotificationButton({ court }: NotificationButtonProps) {
     };
 
     const handleSubscribe = async () => {
-        if (!currentUser || !currentUser.email) {
-            toast.error("Your email is not available. Cannot subscribe.");
-            return;
-        }
-        setConfirmModalOpen(false);
-        setState('loading');
-        try {
-            const newRequestId = await addNotificationRequest(
-                court.id,
-                court.name,
-                currentUser.uid,
-                currentUser.email
-            );
-            setRequestId(newRequestId);
-            setState('subscribed');
-            toast.success(`You'll be notified for ${court.name}!`);
-        } catch {
-            setState('error');
-            toast.error('Could not set notification. Please try again.');
+        if (notificationMethod === 'email') {
+            if (!currentUser || !currentUser.email) {
+                toast.error("Your email is not available. Cannot subscribe.");
+                return;
+            }
+            setConfirmModalOpen(false);
+            setState('loading');
+            try {
+                const newRequestId = await addNotificationRequest(
+                    court.id,
+                    court.name,
+                    currentUser.uid,
+                    currentUser.email
+                );
+                setRequestId(newRequestId);
+                setState('subscribed');
+                toast.success(`You'll be notified for ${court.name}!`);
+            } catch {
+                setState('error');
+                toast.error('Could not set notification. Please try again.');
+            }
+        } else if (notificationMethod === 'sms') {
+            const isValid = matchIsValidTel(phoneNumber);
+            if (!isValid) {
+                toast.error("Please enter a valid phone number.");
+                return;
+            }
+            setConfirmModalOpen(false);
+            toast.success(`SMS notifications are in development. We've noted your interest for ${phoneNumber}!`);
         }
     };
 
@@ -138,22 +164,84 @@ function NotificationButton({ court }: NotificationButtonProps) {
                 </span>
             </Tooltip>
 
-            <Dialog open={isConfirmModalOpen} onClose={() => setConfirmModalOpen(false)}>
-                <DialogTitle>Confirm Notification</DialogTitle>
+            <Dialog open={isConfirmModalOpen} onClose={() => setConfirmModalOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ fontWeight: 'bold' }}>Set Availability Notification</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
-                        Do you want to be notified by email when a court at <i>{court.name}</i> becomes available?
-                    </DialogContentText>
-                    <DialogContentText color="inherit" noWrap>
-                        &nbsp;
-                    </DialogContentText>
-                    <DialogContentText>
-                        <strong>Note:</strong> there is a 1-5min delay to notify you after the facility becomes available.
-                    </DialogContentText>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                        <DialogContentText>
+                           Choose how you'd like to be notified when a court at <strong>{court.name}</strong> becomes available.
+                        </DialogContentText>
+
+                        <FormControl>
+                          <RadioGroup
+                            aria-labelledby="notification-method-group-label"
+                            value={notificationMethod}
+                            onChange={(e) => setNotificationMethod(e.target.value)}
+                            name="notification-method-group"
+                          >
+                            {/* --- EMAIL OPTION --- */}
+                            <Paper
+                              variant="outlined"
+                              sx={{ p: 2, mb: 2, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 1.5, borderColor: notificationMethod === 'email' ? 'primary.main' : 'rgba(0, 0, 0, 0.23)' }}
+                              onClick={() => setNotificationMethod('email')}
+                            >
+                                <FormControlLabel value="email" control={<Radio />} label={
+                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                                    <Typography variant="body1" sx={{fontWeight: 500}}>Email Notification</Typography>
+                                  </Box>
+                                } />
+                                <TextField
+                                    fullWidth
+                                    disabled
+                                    id="email-display"
+                                    label="Your Email"
+                                    defaultValue={currentUser?.email}
+                                    variant="outlined"
+                                    size="small"
+                                />
+                            </Paper>
+
+                            {/* --- SMS OPTION WITH NEW, MODERN PHONE INPUT --- */}
+                             <Paper
+                                variant="outlined"
+                                sx={{ p: 2, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 1.5, borderColor: notificationMethod === 'sms' ? 'primary.main' : 'rgba(0, 0, 0, 0.23)' }}
+                                onClick={() => setNotificationMethod('sms')}
+                              >
+                                <FormControlLabel value="sms" control={<Radio />} label={
+                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <SmsIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                                    <Typography variant="body1" sx={{fontWeight: 500}}>SMS Notification</Typography>
+                                  </Box>
+                                } />
+                                <MuiTelInput
+                                    fullWidth
+                                    size="small"
+                                    label="Your Phone Number"
+                                    defaultCountry="US"
+                                    value={phoneNumber}
+                                    onChange={(newPhone) => setPhoneNumber(newPhone)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    
+                                />
+                              </Paper>
+
+                          </RadioGroup>
+                        </FormControl>
+                        <DialogContentText variant="caption" sx={{textAlign: 'center', mt: 1}}>
+                            Note: There may be a 5-10 minute delay after a court becomes available.
+                        </DialogContentText>
+                    </Box>
                 </DialogContent>
-                <DialogActions>
+                <DialogActions sx={{ p: '16px 24px' }}>
                     <Button onClick={() => setConfirmModalOpen(false)}>Cancel</Button>
-                    <Button onClick={handleSubscribe} color="primary" autoFocus>Yes, Notify Me</Button>
+                    <Button
+                      onClick={handleSubscribe}
+                      variant="contained"
+                      autoFocus
+                    >
+                      Set Notification
+                    </Button>
                 </DialogActions>
             </Dialog>
 
