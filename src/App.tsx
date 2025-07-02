@@ -7,14 +7,16 @@ import { Toaster } from 'react-hot-toast'
 import './styles/App.css';
 import AuthPage from './components/auth/AuthPage';
 import Page404 from './components/layout/Page404';
+import PrivacyPolicy from './components/pages/PrivacyPolicy';
 
 const AppContent: React.FC = () => {
     const location = useLocation();
 
     const onDashboard = useMatch({ path: "/", end: true });
     const onCourtDetails = useMatch("/court/:id");
+    const onPrivacyPolicy = useMatch("/privacy")
 
-    const showHeaderAndFooter = !!(onDashboard || onCourtDetails);
+    const showHeaderAndFooter = !!(onDashboard || onCourtDetails || onPrivacyPolicy);
 
     const isAuthPage = location.pathname === '/auth';
     const mainContentClass = `app-content ${isAuthPage ? 'auth-page-content' : ''}`;
@@ -26,6 +28,7 @@ const AppContent: React.FC = () => {
             <main className={mainContentClass}>
                 <Routes>
                     <Route path="/" element={<Dashboard />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
                     <Route path="/court/:id" element={<CourtDetails />} />
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="*" element={<Page404 />} />

@@ -3,15 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import * as Form from '@radix-ui/react-form';
 import toast from 'react-hot-toast';
 import CircularProgress from '@mui/material/CircularProgress';
-import { signUpWithEmail, loginWithEmail, signInWithGoogle } from '../../services/authService';
+import { signUpWithEmail, loginWithEmail, signInWithGoogle, sendPasswordResetLink } from '../../services/authService';
 import '../../styles/auth/AuthPage.css';
 import { useAuth } from './AuthContext';
-import { FcGoogle } from 'react-icons/fc'
+import { FcGoogle } from 'react-icons/fc';
 import { IconButton } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const AuthPage: React.FC = () => {
-    const [isLoginView, setIsLoginView] = useState(true);
+    const [view, setView] = useState<'login' | 'signup' | 'reset'>('login');
     const navigate = useNavigate();
 
     const [email, setEmail] = useState('');
@@ -29,8 +29,7 @@ const AuthPage: React.FC = () => {
         }
     }, [currentUser, authIsLoading, navigate]);
 
-    const toggleView = () => {
-        setIsLoginView(!isLoginView);
+    const resetFormState = () => {
         setEmail('');
         setPassword('');
         setConfirmPassword('');
@@ -76,12 +75,11 @@ const AuthPage: React.FC = () => {
                     message = error.message || message;
             }
         } else if (error && typeof error.message === 'string') {
-            message = error.message
+            message = error.message;
         }
         setFormError(message);
         toast.error(message);
     };
-
 
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
@@ -92,12 +90,12 @@ const AuthPage: React.FC = () => {
             toast.error("Email and password are required.");
             return;
         }
-        if (!isLoginView && !confirmPassword) {
+        if (view === 'signup' && !confirmPassword) {
             setFormError("Please confirm your password.");
             toast.error("Please confirm your password.");
             return;
         }
-        if (!isLoginView && password !== confirmPassword) {
+        if (view === 'signup' && password !== confirmPassword) {
             setFormError("Passwords do not match.");
             toast.error("Passwords do not match.");
             return;
@@ -105,7 +103,7 @@ const AuthPage: React.FC = () => {
 
         setIsLoading(true);
 
-        if (!isLoginView) {
+        if (view === 'signup') {
             try {
                 await signUpWithEmail(email, password);
                 toast.success('Account created successfully! Welcome!');
@@ -124,8 +122,40 @@ const AuthPage: React.FC = () => {
         }
     };
 
-    return (
-        (authIsLoading === true ? <CircularProgress /> :
+    const handlePasswordReset = async (event: FormEvent) => {
+        event.preventDefault();
+        if (!email) {
+            setFormError("Please enter your email address to send a reset link.");
+            toast.error("Please enter your email address.");
+            return;
+        }
+        setIsLoading(true);
+        setFormError(null);
+        try {
+            await sendPasswordResetLink(email);
+            toast.success(`Password reset link sent to ${email}.`);
+            setView('login');
+            resetFormState();
+        } catch (error: any) {
+            handleAuthError(error);
+            if (error.code === 'auth/user-not-found') {
+                setFormError("No account found with this email. Please sign up instead.");
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (authIsLoading) {
+        return (
+            <div className="auth-page-container" style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <CircularProgress />
+            </div>
+        );
+    }
+    
+    if (view === 'reset') {
+        return (
             <div className="auth-page-container">
                 <div className="auth-form-wrapper">
                     <Link to="/" className="auth-back-link" aria-label="Back to Dashboard">
@@ -134,27 +164,12 @@ const AuthPage: React.FC = () => {
                         </IconButton>
                     </Link>
 
-                    <h2>{isLoginView ? 'Login' : 'Sign Up'}</h2>
+                    <h2>Reset Password</h2>
+                    <p style={{ fontSize: '0.9em', color: '#555', textAlign: 'center', marginBottom: '20px' }}>
+                        Enter your account's email to receive a password reset link.
+                    </p>
 
-                    <IconButton
-                        type="button"
-                        onClick={handleGoogleSignIn}
-                        className="google-signin-button auth-button-social"
-                        disabled={isLoading}
-                        sx={{
-                            border: '1px solid rgba(0, 0, 0, 0.23)',
-                            borderRadius: '0.75rem',
-                        }}
-                    >
-
-                        <FcGoogle size={30} />
-                    </IconButton>
-
-                    <div className="auth-divider">
-                        <span>OR</span>
-                    </div>
-
-                    <Form.Root onSubmit={handleSubmit} className="auth-form">
+                    <Form.Root onSubmit={handlePasswordReset} className="auth-form">
                         {formError && <div className="form-error-message">{formError}</div>}
 
                         <Form.Field name="email" className="form-field">
@@ -175,70 +190,143 @@ const AuthPage: React.FC = () => {
                             <Form.Message className="form-message" match="valueMissing">
                                 Please enter your email
                             </Form.Message>
-                            <Form.Message className="form-message" match="typeMismatch">
-                                Please provide a valid email
-                            </Form.Message>
                         </Form.Field>
 
-                        <Form.Field name="password" className="form-field">
+                        <Form.Submit asChild>
+                            <button className="auth-submit-button" disabled={isLoading}>
+                                {isLoading ? 'Sending Link...' : 'Send Reset Link'}
+                            </button>
+                        </Form.Submit>
+                    </Form.Root>
+
+                    <p className="auth-toggle-prompt">
+                        Remembered your password?
+                        <button onClick={() => { setView('login'); resetFormState(); }} className="auth-toggle-button" disabled={isLoading}>
+                            Back to Login
+                        </button>
+                    </p>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="auth-page-container">
+            <div className="auth-form-wrapper">
+                <Link to="/" className="auth-back-link" aria-label="Back to Dashboard">
+                    <IconButton component="span" sx={{ color: '#555', '&:hover': { color: '#1e3a8a'} }}>
+                        <ArrowBackIcon />
+                    </IconButton>
+                </Link>
+
+                <h2>{view === 'login' ? 'Login' : 'Sign Up'}</h2>
+
+                <IconButton
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    className="google-signin-button auth-button-social"
+                    disabled={isLoading}
+                    sx={{
+                        border: '1px solid rgba(0, 0, 0, 0.23)',
+                        borderRadius: '0.75rem',
+                    }}
+                >
+                    <FcGoogle size={30} />
+                </IconButton>
+
+                <div className="auth-divider">
+                    <span>OR</span>
+                </div>
+
+                <Form.Root onSubmit={handleSubmit} className="auth-form">
+                    {formError && <div className="form-error-message">{formError}</div>}
+
+                    <Form.Field name="email" className="form-field">
+                        <div className="form-label-container">
+                            <Form.Label className="form-label">Email</Form.Label>
+                        </div>
+                        <Form.Control asChild>
+                            <input
+                                className="form-input"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                disabled={isLoading}
+                                autoComplete='off'
+                            />
+                        </Form.Control>
+                        <Form.Message className="form-message" match="valueMissing">
+                            Please enter your email
+                        </Form.Message>
+                        <Form.Message className="form-message" match="typeMismatch">
+                            Please provide a valid email
+                        </Form.Message>
+                    </Form.Field>
+
+                    <Form.Field name="password" className="form-field">
+                        <div className="form-label-container">
+                            <Form.Label className="form-label">Password</Form.Label>
+                            {view === 'login' && (
+                                <button type="button" onClick={() => { setView('reset'); resetFormState(); }} className="auth-toggle-button" style={{ fontSize: '0.8em', fontWeight: 400 }}>
+                                    Forgot Password?
+                                </button>
+                            )}
+                        </div>
+                        <Form.Control asChild>
+                            <input
+                                className="form-input"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                disabled={isLoading}
+                                autoComplete='off'
+                            />
+                        </Form.Control>
+                        <Form.Message className="form-message" match="valueMissing">
+                            Please enter your password
+                        </Form.Message>
+                    </Form.Field>
+
+                    {view === 'signup' && (
+                        <Form.Field name="confirmPassword" className="form-field">
                             <div className="form-label-container">
-                                <Form.Label className="form-label">Password</Form.Label>
+                                <Form.Label className="form-label">Confirm Password</Form.Label>
                             </div>
                             <Form.Control asChild>
                                 <input
                                     className="form-input"
                                     type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
                                     required
                                     disabled={isLoading}
                                     autoComplete='off'
                                 />
                             </Form.Control>
                             <Form.Message className="form-message" match="valueMissing">
-                                Please enter your password
+                                Please confirm your password
                             </Form.Message>
                         </Form.Field>
+                    )}
 
-                        {!isLoginView && (
-                            <Form.Field name="confirmPassword" className="form-field">
-                                <div className="form-label-container">
-                                    <Form.Label className="form-label">Confirm Password</Form.Label>
-                                </div>
-                                <Form.Control asChild>
-                                    <input
-                                        className="form-input"
-                                        type="password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        required
-                                        disabled={isLoading}
-                                        autoComplete='off'
-                                    />
-                                </Form.Control>
-                                <Form.Message className="form-message" match="valueMissing">
-                                    Please confirm your password
-                                </Form.Message>
-                            </Form.Field>
-                        )}
-
-                        <Form.Submit asChild>
-                            <button className="auth-submit-button" disabled={isLoading}>
-                                {isLoading ? 'Processing...' : (isLoginView ? 'Login' : 'Sign Up')}
-                            </button>
-                        </Form.Submit>
-                    </Form.Root>
-
-                    <p className="auth-toggle-prompt">
-                        {isLoginView ? "Don't have an account?" : 'Already have an account?'}
-                        <button onClick={toggleView} className="auth-toggle-button" disabled={isLoading}>
-                            {isLoginView ? 'Sign Up' : 'Login'}
+                    <Form.Submit asChild>
+                        <button className="auth-submit-button" disabled={isLoading}>
+                            {isLoading ? 'Processing...' : (view === 'login' ? 'Login' : 'Sign Up')}
                         </button>
-                    </p>
-                </div>
+                    </Form.Submit>
+                </Form.Root>
+
+                <p className="auth-toggle-prompt">
+                    {view === 'login' ? "Don't have an account?" : 'Already have an account?'}
+                    <button onClick={() => { setView(view === 'login' ? 'signup' : 'login'); resetFormState(); }} className="auth-toggle-button" disabled={isLoading}>
+                        {view === 'login' ? 'Sign Up' : 'Login'}
+                    </button>
+                </p>
             </div>
-        )
+        </div>
     );
 };
 
-export default AuthPage;
+export default AuthPage;  

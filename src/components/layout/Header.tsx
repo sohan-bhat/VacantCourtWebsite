@@ -15,7 +15,8 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
-    Tooltip
+    Tooltip,
+    Divider
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import LoginIcon from '@mui/icons-material/Login';
@@ -23,6 +24,11 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import MenuIcon from '@mui/icons-material/Menu';
+import InfoIcon from '@mui/icons-material/Info';
+import ContactMailIcon from '@mui/icons-material/ContactMail';
+import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
+import GavelIcon from '@mui/icons-material/Gavel';
 
 import '../../styles/layout/Header.css';
 import { useAuth } from '../auth/AuthContext';
@@ -60,7 +66,7 @@ function Header() {
         navigate('/account');
         handleMenuClose();
     };
-    
+
     const handleLogout = async () => {
         handleMenuClose();
         try {
@@ -116,17 +122,32 @@ function Header() {
                 <Box className="header-actions" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     {authIsLoading ? (
                         <CircularProgress size={24} color="inherit" />
-                    ) : currentUser ? (
+                    ) : (
                         <>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={handleOpenAddCourt}
-                                startIcon={<AddIcon />}
-                            >
-                                Add Court
-                            </Button>
-                            <Tooltip title="Account settings" arrow>
+                            {currentUser && (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleOpenAddCourt}
+                                    startIcon={<AddIcon />}
+                                >
+                                    Add Court
+                                </Button>
+                            )}
+
+                            {!currentUser && (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => navigate('/auth')}
+                                    startIcon={<LoginIcon />}
+                                    sx={{ textTransform: 'none' }}
+                                >
+                                    Login / Sign Up
+                                </Button>
+                            )}
+
+                            <Tooltip title="Menu" arrow>
                                 <IconButton
                                     onClick={handleMenuOpen}
                                     size="large"
@@ -135,56 +156,61 @@ function Header() {
                                     aria-haspopup="true"
                                     aria-expanded={menuOpen ? 'true' : undefined}
                                 >
-                                    <AccountCircleIcon sx={{ fontSize: '2rem' }} />
+                                    {currentUser ? <AccountCircleIcon sx={{ fontSize: '2rem' }} /> : <MenuIcon sx={{ fontSize: '2rem' }} />}
                                 </IconButton>
                             </Tooltip>
+
                             <Menu
                                 id="account-menu"
                                 anchorEl={anchorEl}
                                 open={menuOpen}
                                 onClose={handleMenuClose}
-                                MenuListProps={{
-                                    'aria-labelledby': 'account-button',
-                                }}
-                                anchorOrigin={{
-                                    vertical: 'bottom',
-                                    horizontal: 'right',
-                                }}
-                                transformOrigin={{
-                                    vertical: 'top',
-                                    horizontal: 'right',
-                                }}
+                                MenuListProps={{ 'aria-labelledby': 'account-button' }}
+                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                             >
-                                <MenuItem onClick={handleSettings}>
-                                    <ListItemIcon>
-                                        <SettingsIcon fontSize="small" />
-                                    </ListItemIcon>
-                                    <ListItemText>Settings</ListItemText>
+                                <MenuItem component={Link} to="/about" onClick={handleMenuClose}>
+                                    <ListItemIcon><InfoIcon fontSize="small" /></ListItemIcon>
+                                    <ListItemText>About</ListItemText>
                                 </MenuItem>
-                                <MenuItem onClick={handleLogout}>
-                                    <ListItemIcon>
-                                        <ExitToAppIcon fontSize="small" />
-                                    </ListItemIcon>
-                                    <ListItemText>Log Out</ListItemText>
+                                <MenuItem component={Link} to="/contact" onClick={handleMenuClose}>
+                                    <ListItemIcon><ContactMailIcon fontSize="small" /></ListItemIcon>
+                                    <ListItemText>Contact</ListItemText>
                                 </MenuItem>
-                                <MenuItem onClick={openDeleteDialog} sx={{ color: 'error.main' }}>
-                                    <ListItemIcon>
-                                        <DeleteForeverIcon fontSize="small" color="error" />
-                                    </ListItemIcon>
-                                    <ListItemText>Delete Account</ListItemText>
+
+                                <Divider sx={{ my: 0.5 }} />
+
+                                <MenuItem component={Link} to="/privacy" onClick={handleMenuClose}>
+                                    <ListItemIcon><PrivacyTipIcon fontSize="small" /></ListItemIcon>
+                                    <ListItemText>Privacy Policy</ListItemText>
                                 </MenuItem>
+                                <MenuItem component={Link} to="/terms" onClick={handleMenuClose}>
+                                    <ListItemIcon><GavelIcon fontSize="small" /></ListItemIcon>
+                                    <ListItemText>Terms of Service</ListItemText>
+                                </MenuItem>
+
+                                {currentUser && <Divider sx={{ my: 0.5 }} />}
+
+                                {currentUser && (
+                                    <MenuItem onClick={handleSettings}>
+                                        <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
+                                        <ListItemText>Account Settings</ListItemText>
+                                    </MenuItem>
+                                )}
+                                {currentUser && (
+                                    <MenuItem onClick={handleLogout}>
+                                        <ListItemIcon><ExitToAppIcon fontSize="small" /></ListItemIcon>
+                                        <ListItemText>Log Out</ListItemText>
+                                    </MenuItem>
+                                )}
+                                {currentUser && (
+                                    <MenuItem onClick={openDeleteDialog} sx={{ color: 'error.main' }}>
+                                        <ListItemIcon><DeleteForeverIcon fontSize="small" color="error" /></ListItemIcon>
+                                        <ListItemText>Delete Account</ListItemText>
+                                    </MenuItem>
+                                )}
                             </Menu>
                         </>
-                    ) : (
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => navigate('/auth')}
-                            startIcon={<LoginIcon />}
-                            sx={{ textTransform: 'none' }}
-                        >
-                            Login / Sign Up
-                        </Button>
                     )}
                 </Box>
             </div>

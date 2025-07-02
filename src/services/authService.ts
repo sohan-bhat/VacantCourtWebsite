@@ -7,7 +7,8 @@ import {
     User as FirebaseUser,
     deleteUser,
     GoogleAuthProvider,
-    signInWithPopup
+    signInWithPopup,
+    sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth } from './config';
 import toast from 'react-hot-toast';
@@ -112,6 +113,15 @@ export const deleteCurrentUserAccount = async (): Promise<void> => {
         await deleteUser(user);
     } catch (error: any) {
         console.error("Error deleting user account:", error);
+        throw error;
+    }
+};
+
+export const sendPasswordResetLink = async (email: string): Promise<void> => {
+    try {
+        await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+        console.error("Error sending password reset email:", error);
         throw error;
     }
 };
