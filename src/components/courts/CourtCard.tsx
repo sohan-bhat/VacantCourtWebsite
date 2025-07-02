@@ -169,78 +169,90 @@ function NotificationButton({ court }: NotificationButtonProps) {
                 <DialogContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
                         <DialogContentText>
-                           Choose how you'd like to be notified when a court at <strong>{court.name}</strong> becomes available.
+                            Choose how you'd like to be notified when a court at <strong>{court.name}</strong> becomes available.
                         </DialogContentText>
 
                         <FormControl>
-                          <RadioGroup
-                            aria-labelledby="notification-method-group-label"
-                            value={notificationMethod}
-                            onChange={(e) => setNotificationMethod(e.target.value)}
-                            name="notification-method-group"
-                          >
-                            {/* --- EMAIL OPTION --- */}
-                            <Paper
-                              variant="outlined"
-                              sx={{ p: 2, mb: 2, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 1.5, borderColor: notificationMethod === 'email' ? 'primary.main' : 'rgba(0, 0, 0, 0.23)' }}
-                              onClick={() => setNotificationMethod('email')}
+                            <RadioGroup
+                                aria-labelledby="notification-method-group-label"
+                                value={notificationMethod}
+                                onChange={(e) => setNotificationMethod(e.target.value)}
+                                name="notification-method-group"
                             >
-                                <FormControlLabel value="email" control={<Radio />} label={
-                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                                    <Typography variant="body1" sx={{fontWeight: 500}}>Email Notification</Typography>
-                                  </Box>
-                                } />
-                                <TextField
-                                    fullWidth
-                                    disabled
-                                    id="email-display"
-                                    label="Your Email"
-                                    defaultValue={currentUser?.email}
+                                {/* --- EMAIL OPTION --- */}
+                                <Paper
                                     variant="outlined"
-                                    size="small"
-                                />
-                            </Paper>
+                                    sx={{ p: 2, mb: 2, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 1.5, borderColor: notificationMethod === 'email' ? 'primary.main' : 'rgba(0, 0, 0, 0.23)' }}
+                                    onClick={() => setNotificationMethod('email')}
+                                >
+                                    <FormControlLabel value="email" control={<Radio />} label={
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                                            <Typography variant="body1" sx={{ fontWeight: 500 }}>Email Notification</Typography>
+                                        </Box>
+                                    } />
+                                    <TextField
+                                        fullWidth
+                                        disabled
+                                        id="email-display"
+                                        label="Your Email"
+                                        defaultValue={currentUser?.email}
+                                        variant="outlined"
+                                        size="small"
+                                    />
+                                </Paper>
+                                <Tooltip title="SMS notifications are coming soon!">
+                                    <span>
+                                        <Paper
+                                            variant="outlined"
+                                            sx={{
+                                                p: 2,
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: 1.5,
+                                                borderColor: 'rgba(0, 0, 0, 0.23)',
+                                                opacity: 0.6
+                                            }}
+                                        >
+                                            <FormControlLabel
+                                                disabled
+                                                value="sms"
+                                                control={<Radio />}
+                                                label={
+                                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                        <SmsIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                                                        <Typography variant="body1" sx={{ fontWeight: 500 }}>SMS Notification</Typography>
+                                                    </Box>
+                                                }
+                                            />
+                                            <MuiTelInput
+                                                disabled
+                                                fullWidth
+                                                size="small"
+                                                label="Your Phone Number"
+                                                defaultCountry="US"
+                                                value={phoneNumber}
+                                                onChange={(newPhone) => setPhoneNumber(newPhone)}
+                                            />
+                                        </Paper>
+                                    </span>
+                                </Tooltip>
 
-                            {/* --- SMS OPTION WITH NEW, MODERN PHONE INPUT --- */}
-                             <Paper
-                                variant="outlined"
-                                sx={{ p: 2, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 1.5, borderColor: notificationMethod === 'sms' ? 'primary.main' : 'rgba(0, 0, 0, 0.23)' }}
-                                onClick={() => setNotificationMethod('sms')}
-                              >
-                                <FormControlLabel value="sms" control={<Radio />} label={
-                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <SmsIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                                    <Typography variant="body1" sx={{fontWeight: 500}}>SMS Notification</Typography>
-                                  </Box>
-                                } />
-                                <MuiTelInput
-                                    fullWidth
-                                    size="small"
-                                    label="Your Phone Number"
-                                    defaultCountry="US"
-                                    value={phoneNumber}
-                                    onChange={(newPhone) => setPhoneNumber(newPhone)}
-                                    onClick={(e) => e.stopPropagation()}
-                                    
-                                />
-                              </Paper>
-
-                          </RadioGroup>
+                            </RadioGroup>
                         </FormControl>
-                        <DialogContentText variant="caption" sx={{textAlign: 'center', mt: 1}}>
-                            Note: There may be a 5-10 minute delay after a court becomes available.
+                        <DialogContentText variant="caption" sx={{ textAlign: 'center', mt: 1 }}>
+                            Note: There may be a 1-3 minute delay after a court becomes available.
                         </DialogContentText>
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ p: '16px 24px' }}>
                     <Button onClick={() => setConfirmModalOpen(false)}>Cancel</Button>
                     <Button
-                      onClick={handleSubscribe}
-                      variant="contained"
-                      autoFocus
+                        onClick={handleSubscribe}
+                        variant="contained"
+                        autoFocus
                     >
-                      Set Notification
+                        Set Notification
                     </Button>
                 </DialogActions>
             </Dialog>
