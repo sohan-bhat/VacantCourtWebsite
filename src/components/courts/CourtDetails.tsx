@@ -251,67 +251,32 @@ function CourtDetails() {
                                 <ArrowBackIcon />
                             </IconButton>
                         </Link>
-                        {!isMobileView ?
-                            <Typography variant="h4" component="h2" sx={{
-                                ml: { xs: 1, sm: 2 },
-                                color: 'primary.dark',
-                                fontWeight: 700,
-                                flexShrink: 1,
-                                minWidth: 0,
-                                wordBreak: 'break-word',
-                                fontSize: '1.8rem',
-                                fontFamily: 'Poppins'
-                            }}>
-                                {courtDetails.name}
-                            </Typography>
-                            :
-                            <Typography variant="h4" component="h2" sx={{
-                                ml: { xs: 1, sm: 2 },
-                                color: 'primary.dark',
-                                fontWeight: 700,
-                                flexShrink: 1,
-                                minWidth: 0,
-                                wordBreak: 'break-word',
-                                fontSize: '1.3rem',
-                                fontFamily: 'Poppins'
-                            }}>
-                                {courtDetails.name}
-                            </Typography>
-
-                        }
-                        {!isMobileView ?
-                            <Box sx={{
-                                ml: { xs: 1, sm: 2 },
-                                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                color: theme.palette.primary.dark,
-                                px: '8px', py: '4px',
-                                borderRadius: '16px',
-                                fontSize: '1.1rem',
-                                fontWeight: 600,
-                                whiteSpace: 'nowrap',
-                                flexShrink: 0,
-                                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                                fontFamily: 'Poppins'
-                            }}>
-                                {courtDetails.type}
-                            </Box>
-                            :
-                            <Box sx={{
-                                ml: { xs: 1, sm: 2 },
-                                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                color: theme.palette.primary.dark,
-                                px: '8px', py: '4px',
-                                borderRadius: '16px',
-                                fontSize: '0.9rem',
-                                fontWeight: 600,
-                                whiteSpace: 'nowrap',
-                                flexShrink: 0,
-                                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                                fontFamily: 'Poppins'
-                            }}>
-                                {courtDetails.type}
-                            </Box>
-                        }
+                        <Typography variant={isMobileView ? "h5" : "h4"} component="h2" sx={{
+                            ml: { xs: 1, sm: 2 },
+                            color: 'primary.dark',
+                            fontWeight: 700,
+                            flexShrink: 1,
+                            minWidth: 0,
+                            wordBreak: 'break-word',
+                            fontFamily: 'Poppins'
+                        }}>
+                            {courtDetails.name}
+                        </Typography>
+                        <Box sx={{
+                            ml: { xs: 1, sm: 2 },
+                            bgcolor: alpha(theme.palette.primary.main, 0.1),
+                            color: theme.palette.primary.dark,
+                            px: '8px', py: '4px',
+                            borderRadius: '16px',
+                            fontSize: isMobileView ? '0.9rem' : '1.1rem',
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                            border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                            fontFamily: 'Poppins'
+                        }}>
+                            {courtDetails.type}
+                        </Box>
                     </Box>
                     {isOwner && (
                         <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
@@ -324,7 +289,7 @@ function CourtDetails() {
                         </Box>
                     )}
                 </Box>
-
+    
                 {isMobileView && (
                     <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                         <Tabs
@@ -360,22 +325,22 @@ function CourtDetails() {
                         </Tabs>
                     </Box>
                 )}
-
-                <Grid container spacing={isMobileView ? 2 : 3}>
-                    {!isMobileView || (isMobileView && activeTab === 0) ? (
-                        <Grid item xs={12} md={6}>
+    
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', md: 'row' },
+                    gap: { xs: 2, md: 3 },
+                }}>
+                    {(!isMobileView || (isMobileView && activeTab === 0)) && (
+                        <Box sx={{ flex: { md: '1 1 50%' }, minWidth: 0 }}>
                             <Paper elevation={3} sx={{
                                 p: 0,
                                 borderRadius: theme.shape.borderRadius,
-                                height: 'auto',
-                                minHeight: isMobileView ? 'auto' : panelsMinHeight,
+                                height: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                justifyContent: 'flex-start',
                                 overflow: 'hidden'
-                            }}
-                                ref={imagePanelRef}
-                            >
+                            }}>
                                 <Box sx={{
                                     width: '100%',
                                     height: { xs: 200, sm: 250 },
@@ -403,30 +368,12 @@ function CourtDetails() {
                                                 <>
                                                     <IconButton
                                                         onClick={() => handleImageNav('prev')}
-                                                        sx={{
-                                                            position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
-                                                            bgcolor: alpha(theme.palette.common.black, 0.4),
-                                                            color: 'white',
-                                                            '&:hover': { bgcolor: alpha(theme.palette.common.black, 0.6) },
-                                                            p: 1,
-                                                            borderRadius: '50%',
-                                                            fontSize: '2rem'
-                                                        }}
-                                                    >
+                                                        sx={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', bgcolor: alpha(theme.palette.common.black, 0.4), color: 'white', '&:hover': { bgcolor: alpha(theme.palette.common.black, 0.6) }, p: 1, borderRadius: '50%', fontSize: '2rem' }}>
                                                         <ChevronLeftIcon fontSize="inherit" />
                                                     </IconButton>
                                                     <IconButton
                                                         onClick={() => handleImageNav('next')}
-                                                        sx={{
-                                                            position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                                                            bgcolor: alpha(theme.palette.common.black, 0.4),
-                                                            color: 'white',
-                                                            '&:hover': { bgcolor: alpha(theme.palette.common.black, 0.6) },
-                                                            p: 1,
-                                                            borderRadius: '50%',
-                                                            fontSize: '2rem'
-                                                        }}
-                                                    >
+                                                        sx={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', bgcolor: alpha(theme.palette.common.black, 0.4), color: 'white', '&:hover': { bgcolor: alpha(theme.palette.common.black, 0.6) }, p: 1, borderRadius: '50%', fontSize: '2rem' }}>
                                                         <ChevronRightIcon fontSize="inherit" />
                                                     </IconButton>
                                                 </>
@@ -436,155 +383,123 @@ function CourtDetails() {
                                         <Typography variant="body1" color="text.secondary">No Images Available</Typography>
                                     )}
                                 </Box>
-
+    
                                 {courtDetails.amenities && courtDetails.amenities.length > 0 && (
                                     <Box sx={{ p: { xs: 2, sm: 2.5 } }}>
-                                        <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{
-                                            fontSize: '1.1rem', fontWeight: 600
-                                        }}>
+                                        <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
                                             Amenities
                                         </Typography>
                                         <Grid container spacing={1}>
                                             {courtDetails.amenities.map((amenity, index) => (
-                                                <Grid item xs={12} sm={6} key={index}>
+                                                <Grid key={index}>
                                                     <ListItem disableGutters sx={{ py: 0.5 }}>
                                                         <ListItemIcon sx={{ minWidth: 35, color: 'success.main' }}><CheckCircleOutlineIcon /></ListItemIcon>
-                                                        <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{
-                                                            fontSize: '0.9rem'
-                                                        }}>{amenity}</Typography>} />
+                                                        <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{ fontSize: '0.9rem' }}>{amenity}</Typography>} />
                                                     </ListItem>
                                                 </Grid>
                                             ))}
                                         </Grid>
                                     </Box>
                                 )}
-
                             </Paper>
-                        </Grid>
-                    ) : null}
-
-
-                    {!isMobileView || (isMobileView && activeTab === 0) ? (
-                        <Grid item xs={12} md={6}>
-                            <TabPanel value={activeTab} index={0} isMobile={isMobileView}>
-                                <Paper elevation={3} sx={{
-                                    p: { xs: 2, sm: 2.5 },
-                                    borderRadius: theme.shape.borderRadius,
-                                    height: 'auto',
-                                    minHeight: isMobileView ? 'auto' : panelsMinHeight,
-                                    overflowY: isMobileView ? 'visible' : 'auto',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'flex-start'
-                                }}
-                                    ref={detailsPanelRef}
-                                >
-                                    {courtDetails.description && (
-                                        <Box sx={{ mb: 3 }}>
-                                            <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{
-                                                fontSize: '1.1rem', fontWeight: 600
-                                            }}>
-                                                About
-                                            </Typography>
-                                            <Typography variant="body1" color="text.secondary" sx={{
-                                                fontSize: '1rem', lineHeight: 1.6
-                                            }}>
-                                                {courtDetails.description}
-                                            </Typography>
-                                        </Box>
-                                    )}
-
-                                    <Box>
-                                        <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{
-                                            fontSize: '1.1rem', fontWeight: 600
-                                        }}>
-                                            Contact & Location
-                                        </Typography>
-                                        <List dense disablePadding>
-                                            {courtDetails.location && (
-                                                <ListItem disableGutters sx={{ py: 0.5 }}>
-                                                    <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><PlaceIcon /></ListItemIcon>
-                                                    <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{
-                                                        fontSize: '0.9rem', fontWeight: 'bold'
-                                                    }}>General Area: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.location}</Typography></Typography>} />
-                                                </ListItem>
-                                            )}
-                                            {courtDetails.address && (
-                                                <ListItem disableGutters sx={{ py: 0.5 }}>
-                                                    <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><LocationOnIcon /></ListItemIcon>
-                                                    <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{
-                                                        fontSize: '0.9rem', fontWeight: 'bold'
-                                                    }}>Address: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.address}</Typography></Typography>} />
-                                                </ListItem>
-                                            )}
-                                            {courtDetails.phone && (
-                                                <ListItem disableGutters sx={{ py: 0.5 }}>
-                                                    <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><PhoneIcon /></ListItemIcon>
-                                                    <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{
-                                                        fontSize: '0.9rem', fontWeight: 'bold'
-                                                    }}>Phone: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.phone}</Typography></Typography>} />
-                                                </ListItem>
-                                            )}
-                                            {courtDetails.hours && (
-                                                <ListItem disableGutters sx={{ py: 0.5 }}>
-                                                    <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><AccessTimeIcon /></ListItemIcon>
-                                                    <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{
-                                                        fontSize: '0.9rem', fontWeight: 'bold'
-                                                    }}>Hours: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.hours}</Typography></Typography>} />
-                                                </ListItem>
-                                            )}
-                                            {courtDetails.address && (
-                                                <ListItem disableGutters sx={{ py: 0.5 }}>
-                                                    <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}>
-                                                        <DirectionsIcon />
-                                                    </ListItemIcon>
-                                                    <ListItemText>
-                                                        <a href={getDirectionsLink()} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                                                            <Button variant="outlined" size="small"
-                                                                sx={{
-                                                                    borderColor: 'primary.main', color: 'primary.main',
-                                                                    '&:hover': { borderColor: 'primary.dark', bgcolor: alpha(theme.palette.primary.main, 0.04) },
-                                                                    fontSize: '0.8rem'
-                                                                }}>
-                                                                Get Directions
-                                                            </Button>
-                                                        </a>
-                                                    </ListItemText>
-                                                </ListItem>
-                                            )}
-                                        </List>
-                                    </Box>
-                                </Paper>
-                            </TabPanel>
-                        </Grid>
-                    ) : null}
-                </Grid>
-
-                {!isMobileView || (isMobileView && activeTab === 1) ? (
-                    <Box sx={{ mt: isMobileView ? 0 : 4 }}>
-                        <TabPanel value={activeTab} index={1} isMobile={isMobileView}>
+                        </Box>
+                    )}
+    
+                    {(!isMobileView || (isMobileView && activeTab === 0)) && (
+                        <Box sx={{ flex: { md: '1 1 50%' }, minWidth: 0 }}>
                             <Paper elevation={3} sx={{
                                 p: { xs: 2, sm: 2.5 },
                                 borderRadius: theme.shape.borderRadius,
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column'
                             }}>
-                                <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{
-                                    fontSize: '1.1rem', fontWeight: 600, fontFamily: 'Poppins'
-                                }}>
-                                    Court Availability
-                                </Typography>
-                                {courtDetails.courts && courtDetails.courts.length > 0 ? (
-                                    <CourtSchedule courts={courtDetails.courts} />
-                                ) : (
-                                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontSize: '0.9rem' }}>
-                                        No individual courts have been configured for this facility yet.
-                                    </Typography>
+                                {courtDetails.description && (
+                                    <Box sx={{ mb: 3 }}>
+                                        <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                                            About
+                                        </Typography>
+                                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1rem', lineHeight: 1.6 }}>
+                                            {courtDetails.description}
+                                        </Typography>
+                                    </Box>
                                 )}
+                                <Box>
+                                    <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                                        Contact & Location
+                                    </Typography>
+                                    <List dense disablePadding>
+                                        {courtDetails.location && (
+                                            <ListItem disableGutters sx={{ py: 0.5 }}>
+                                                <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><PlaceIcon /></ListItemIcon>
+                                                <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>General Area: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.location}</Typography></Typography>} />
+                                            </ListItem>
+                                        )}
+                                        {courtDetails.address && (
+                                            <ListItem disableGutters sx={{ py: 0.5 }}>
+                                                <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><LocationOnIcon /></ListItemIcon>
+                                                <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Address: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.address}</Typography></Typography>} />
+                                            </ListItem>
+                                        )}
+                                        {courtDetails.phone && (
+                                            <ListItem disableGutters sx={{ py: 0.5 }}>
+                                                <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><PhoneIcon /></ListItemIcon>
+                                                <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Phone: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.phone}</Typography></Typography>} />
+                                            </ListItem>
+                                        )}
+                                        {courtDetails.hours && (
+                                            <ListItem disableGutters sx={{ py: 0.5 }}>
+                                                <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><AccessTimeIcon /></ListItemIcon>
+                                                <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Hours: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.hours}</Typography></Typography>} />
+                                            </ListItem>
+                                        )}
+                                        {courtDetails.address && (
+                                            <ListItem disableGutters sx={{ py: 0.5 }}>
+                                                <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}>
+                                                    <DirectionsIcon />
+                                                </ListItemIcon>
+                                                <ListItemText>
+                                                    <a href={getDirectionsLink()} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                                                        <Button variant="outlined" size="small"
+                                                            sx={{
+                                                                borderColor: 'primary.main', color: 'primary.main',
+                                                                '&:hover': { borderColor: 'primary.dark', bgcolor: alpha(theme.palette.primary.main, 0.04) },
+                                                                fontSize: '0.8rem'
+                                                            }}>
+                                                            Get Directions
+                                                        </Button>
+                                                    </a>
+                                                </ListItemText>
+                                            </ListItem>
+                                        )}
+                                    </List>
+                                </Box>
                             </Paper>
-                        </TabPanel>
+                        </Box>
+                    )}
+                </Box>
+    
+                {(!isMobileView || (isMobileView && activeTab === 1)) && (
+                    <Box sx={{ mt: { xs: 2, md: 4 } }}>
+                        <Paper elevation={3} sx={{
+                            p: { xs: 2, sm: 2.5 },
+                            borderRadius: theme.shape.borderRadius,
+                        }}>
+                            <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600, fontFamily: 'Poppins' }}>
+                                Court Availability
+                            </Typography>
+                            {courtDetails.courts && courtDetails.courts.length > 0 ? (
+                                <CourtSchedule courts={courtDetails.courts} />
+                            ) : (
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontSize: '0.9rem' }}>
+                                    No individual courts have been configured for this facility yet.
+                                </Typography>
+                            )}
+                        </Paper>
                     </Box>
-                ) : null}
+                )}
             </Box>
-
+    
             {courtDetails && (
                 <EditCourt
                     open={editModalOpen}
@@ -592,7 +507,7 @@ function CourtDetails() {
                     court={courtDetails}
                 />
             )}
-
+    
             <ConfirmationDialog
                 open={deleteConfirmOpen}
                 onClose={handleCloseDeleteConfirm}
