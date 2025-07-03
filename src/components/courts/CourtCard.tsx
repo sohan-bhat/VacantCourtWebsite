@@ -179,7 +179,6 @@ function NotificationButton({ court }: NotificationButtonProps) {
                                 onChange={(e) => setNotificationMethod(e.target.value)}
                                 name="notification-method-group"
                             >
-                                {/* --- EMAIL OPTION --- */}
                                 <Paper
                                     variant="outlined"
                                     sx={{ p: 2, mb: 2, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 1.5, borderColor: notificationMethod === 'email' ? 'primary.main' : 'rgba(0, 0, 0, 0.23)' }}

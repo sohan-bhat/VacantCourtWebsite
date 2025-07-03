@@ -184,7 +184,7 @@ function Header() {
                                     <ListItemIcon><PrivacyTipIcon fontSize="small" /></ListItemIcon>
                                     <ListItemText>Privacy Policy</ListItemText>
                                 </MenuItem>
-                                <MenuItem component={Link} to="/terms" onClick={handleMenuClose}>
+                                <MenuItem component={Link} to="/tos" onClick={handleMenuClose}>
                                     <ListItemIcon><GavelIcon fontSize="small" /></ListItemIcon>
                                     <ListItemText>Terms of Service</ListItemText>
                                 </MenuItem>
