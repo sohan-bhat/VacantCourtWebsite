@@ -16,6 +16,7 @@ import {
     WhereFilterOp as FirebaseWhereFilterOp
 } from 'firebase/firestore';
 import { db } from './config';
+import { getAuth } from 'firebase/auth';
 
 export interface FirestoreDocWithId {
     id: string;
@@ -179,5 +180,30 @@ export const listenToDocument = <T extends FirestoreDocWithId>(
         console.error(`Error setting up document listener ${collectionName}/${documentId}: `, error);
         onError(error);
         return () => {};
+    }
+};
+
+export const transferCourtOwnership = async (courtId: string, newOwnerEmail: string): Promise<void> => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) {
+        throw new Error("You must be logged in to perform this action.");
+    }
+
+    const token = await user.getIdToken();
+
+    const response = await fetch('/.netlify/functions/transferOwnership', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ courtId, newOwnerEmail })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to transfer ownership.');
     }
 };

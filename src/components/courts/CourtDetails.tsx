@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import CourtSchedule from './CourtSchedule';
+import TransferOwnershipDialog from '../dialog/TransferOwnershipDialog';
 import { Court, subscribeToCourtById } from '../../data/courtData';
 import EditCourt from './EditCourt';
 import '../../styles/courts/CourtDetails.css';
@@ -33,6 +34,7 @@ import PlaceIcon from '@mui/icons-material/Place';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import { useAuth } from '../auth/AuthContext';
 import { deleteDocument } from '../../services/firestoreSerivce';
 import { useNavigate } from 'react-router-dom';
@@ -104,6 +106,9 @@ function CourtDetails() {
     const imagePanelRef = useRef<HTMLDivElement>(null);
     const detailsPanelRef = useRef<HTMLDivElement>(null);
     const [panelsMinHeight, setPanelsMinHeight] = useState<number | 'auto'>('auto');
+
+    const [court, setCourt] = useState<Court | null>(null);
+    const [isTransferDialogOpen, setTransferDialogOpen] = useState(false); // <-- ADD STATE
 
     const navigate = useNavigate();
 
@@ -286,10 +291,17 @@ function CourtDetails() {
                             <IconButton onClick={handleOpenDeleteConfirm} color="error" aria-label="delete court" sx={{ border: `1px solid ${theme.palette.error.main}`, borderRadius: '8px', p: 0.75 }}>
                                 <DeleteForeverIcon />
                             </IconButton>
+                            <IconButton
+                                color="secondary"
+                                onClick={() => setTransferDialogOpen(true)}
+                                sx={{ border: `1px solid ${theme.palette.secondary.main}`, borderRadius: '8px', p: 0.75 }}
+                            >
+                                <SwapHorizIcon />
+                            </IconButton>
                         </Box>
                     )}
                 </Box>
-    
+
                 {isMobileView && (
                     <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                         <Tabs
@@ -325,7 +337,7 @@ function CourtDetails() {
                         </Tabs>
                     </Box>
                 )}
-    
+
                 <Box sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', md: 'row' },
@@ -383,7 +395,7 @@ function CourtDetails() {
                                         <Typography variant="body1" color="text.secondary">No Images Available</Typography>
                                     )}
                                 </Box>
-    
+
                                 {courtDetails.amenities && courtDetails.amenities.length > 0 && (
                                     <Box sx={{ p: { xs: 2, sm: 2.5 } }}>
                                         <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
@@ -404,7 +416,7 @@ function CourtDetails() {
                             </Paper>
                         </Box>
                     )}
-    
+
                     {(!isMobileView || (isMobileView && activeTab === 0)) && (
                         <Box sx={{ flex: { md: '1 1 50%' }, minWidth: 0 }}>
                             <Paper elevation={3} sx={{
@@ -478,7 +490,7 @@ function CourtDetails() {
                         </Box>
                     )}
                 </Box>
-    
+
                 {(!isMobileView || (isMobileView && activeTab === 1)) && (
                     <Box sx={{ mt: { xs: 2, md: 4 } }}>
                         <Paper elevation={3} sx={{
@@ -498,16 +510,30 @@ function CourtDetails() {
                         </Paper>
                     </Box>
                 )}
-            </Box>
-    
+            </Box >
+
             {courtDetails && (
+                <>
                 <EditCourt
                     open={editModalOpen}
                     onClose={handleCloseEditModal}
                     court={courtDetails}
                 />
+
+                    <TransferOwnershipDialog
+                    open={isTransferDialogOpen}
+                    onClose={() => setTransferDialogOpen(false)}
+                    courtId={courtDetails.id}
+                    courtName={courtDetails.name}
+                    onSuccess={() => {
+                        setTransferDialogOpen(false);
+                        navigate('/');
+                    }} />
+                </>
             )}
-    
+
+
+
             <ConfirmationDialog
                 open={deleteConfirmOpen}
                 onClose={handleCloseDeleteConfirm}
