@@ -17,7 +17,9 @@ import {
     Tooltip,
     Divider,
     IconButton,
-    Typography
+    Typography,
+    Stack,
+    TextField
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import LoginIcon from '@mui/icons-material/Login';
@@ -30,6 +32,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import ContactMailIcon from '@mui/icons-material/ContactMail';
 import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
 import GavelIcon from '@mui/icons-material/Gavel';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import '../../styles/layout/Header.css';
 import { useAuth } from '../auth/AuthContext';
@@ -45,6 +48,7 @@ function Header() {
     const menuOpen = Boolean(anchorEl);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [confirmationText, setConfirmationText] = useState('');
 
     const handleOpenAddCourt = () => {
         if (!currentUser) {
@@ -87,9 +91,15 @@ function Header() {
 
     const closeDeleteDialog = () => {
         setDeleteDialogOpen(false);
+        setConfirmationText('');
     };
 
     const handleDeleteAccount = async () => {
+        if (confirmationText !== 'DELETE') {
+            toast.error('Please type DELETE to confirm.');
+            return;
+        }
+        
         closeDeleteDialog();
         if (!currentUser) {
             toast.error("No user is signed in.");
@@ -278,23 +288,52 @@ function Header() {
             <Dialog
                 open={deleteDialogOpen}
                 onClose={closeDeleteDialog}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
+                aria-labelledby="delete-account-dialog-title"
             >
-                <DialogTitle id="alert-dialog-title">
-                    {"Delete Your Account?"}
+                <DialogTitle id="delete-account-dialog-title" sx={{ textAlign: 'center', pt: 3 }}>
+                    <Stack direction="column" alignItems="center" spacing={1}>
+                        <WarningAmberIcon sx={{ fontSize: '3.5rem', color: 'error.main' }} />
+                        <Typography variant="h5" component="span" sx={{ fontWeight: 'bold' }}>
+                            Are you absolutely sure?
+                        </Typography>
+                    </Stack>
                 </DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data associated with this account will be removed.
+                    <DialogContentText component="div" sx={{ textAlign: 'center', mb: 2 }}>
+                        This action is irreversible. All of your data will be permanently deleted.
+                        <Box component="ul" sx={{ textAlign: 'left', mt: 2, pl: 4, color: 'text.secondary' }}>
+                            <li>Your user profile (email, name, photo)</li>
+                            <li>All active court notification requests</li>
+                        </Box>
                     </DialogContentText>
+                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+                        To confirm, please type <strong>DELETE</strong> in the box below.
+                    </Typography>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="delete-confirmation"
+                        label="Type DELETE to confirm"
+                        type="text"
+                        fullWidth
+                        variant="outlined"
+                        value={confirmationText}
+                        onChange={(e) => setConfirmationText(e.target.value)}
+                        placeholder="DELETE"
+                        autoComplete="off"
+                    />
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={closeDeleteDialog} color="primary">
+                <DialogActions sx={{ p: '16px 24px' }}>
+                    <Button onClick={closeDeleteDialog} variant="outlined" color="secondary">
                         Cancel
                     </Button>
-                    <Button onClick={handleDeleteAccount} color="error" autoFocus>
-                        Delete Account
+                    <Button
+                        onClick={handleDeleteAccount}
+                        variant="contained"
+                        color="error"
+                        disabled={confirmationText !== 'DELETE'}
+                    >
+                        Delete My Account
                     </Button>
                 </DialogActions>
             </Dialog>
