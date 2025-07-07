@@ -3,6 +3,3 @@ directory = "netlify/functions/"
 
 [functions.notifications]
 schedule = "*/2 * * * *"
-
-[functions.transferOwnership]
-schedule = "*/2 * * * *"
