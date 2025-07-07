@@ -9,34 +9,24 @@ import {
     MenuItem,
     ListItemIcon,
     ListItemText,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
     Tooltip,
     Divider,
     IconButton,
     Typography,
-    Stack,
-    TextField
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import LoginIcon from '@mui/icons-material/Login';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import MenuIcon from '@mui/icons-material/Menu';
 import InfoIcon from '@mui/icons-material/Info';
 import ContactMailIcon from '@mui/icons-material/ContactMail';
 import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
 import GavelIcon from '@mui/icons-material/Gavel';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import '../../styles/layout/Header.css';
 import { useAuth } from '../auth/AuthContext';
-import { deleteCurrentUserAccount } from '../../services/authService';
 import toast from 'react-hot-toast';
 
 function Header() {
@@ -46,9 +36,6 @@ function Header() {
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const menuOpen = Boolean(anchorEl);
-
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [confirmationText, setConfirmationText] = useState('');
 
     const handleOpenAddCourt = () => {
         if (!currentUser) {
@@ -83,42 +70,6 @@ function Header() {
             console.error("Logout error:", error);
         }
     };
-
-    const openDeleteDialog = () => {
-        setDeleteDialogOpen(true);
-        handleMenuClose();
-    };
-
-    const closeDeleteDialog = () => {
-        setDeleteDialogOpen(false);
-        setConfirmationText('');
-    };
-
-    const handleDeleteAccount = async () => {
-        if (confirmationText !== 'DELETE') {
-            toast.error('Please type DELETE to confirm.');
-            return;
-        }
-        
-        closeDeleteDialog();
-        if (!currentUser) {
-            toast.error("No user is signed in.");
-            return;
-        }
-        try {
-            await deleteCurrentUserAccount();
-            toast.success("Account deleted successfully.");
-            navigate('/auth');
-        } catch (error: any) {
-            console.error("Delete account error:", error);
-            if (error.code === 'auth/requires-recent-login') {
-                toast.error("This operation is sensitive and requires recent authentication. Please log out and log back in to delete your account.");
-            } else {
-                toast.error("Failed to delete account. Please try again.");
-            }
-        }
-    };
-
 
     return (
         <header className="app-header">
@@ -160,7 +111,7 @@ function Header() {
 
                             {currentUser ? (
                                 <Tooltip title="Account" arrow>
-                                    <Box
+                                     <Box
                                         onClick={handleMenuOpen}
                                         aria-controls={menuOpen ? 'account-menu' : undefined}
                                         aria-haspopup="true"
@@ -268,12 +219,6 @@ function Header() {
                                         <ListItemText>Log Out</ListItemText>
                                     </MenuItem>
                                 )}
-                                {currentUser && (
-                                    <MenuItem onClick={openDeleteDialog} sx={{ color: 'error.main' }}>
-                                        <ListItemIcon><DeleteForeverIcon fontSize="small" color="error" /></ListItemIcon>
-                                        <ListItemText>Delete Account</ListItemText>
-                                    </MenuItem>
-                                )}
                             </Menu>
                         </>
                     )}
@@ -284,59 +229,6 @@ function Header() {
                 open={openAddCourt}
                 onClose={() => setOpenAddCourt(false)}
             />
-
-            <Dialog
-                open={deleteDialogOpen}
-                onClose={closeDeleteDialog}
-                aria-labelledby="delete-account-dialog-title"
-            >
-                <DialogTitle id="delete-account-dialog-title" sx={{ textAlign: 'center', pt: 3 }}>
-                    <Stack direction="column" alignItems="center" spacing={1}>
-                        <WarningAmberIcon sx={{ fontSize: '3.5rem', color: 'error.main' }} />
-                        <Typography variant="h5" component="span" sx={{ fontWeight: 'bold' }}>
-                            Are you absolutely sure?
-                        </Typography>
-                    </Stack>
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText component="div" sx={{ textAlign: 'center', mb: 2 }}>
-                        This action is irreversible. All of your data will be permanently deleted.
-                        <Box component="ul" sx={{ textAlign: 'left', mt: 2, pl: 4, color: 'text.secondary' }}>
-                            <li>Your user profile (email, name, photo)</li>
-                            <li>All active court notification requests</li>
-                        </Box>
-                    </DialogContentText>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                        To confirm, please type <strong>DELETE</strong> in the box below.
-                    </Typography>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="delete-confirmation"
-                        label="Type DELETE to confirm"
-                        type="text"
-                        fullWidth
-                        variant="outlined"
-                        value={confirmationText}
-                        onChange={(e) => setConfirmationText(e.target.value)}
-                        placeholder="DELETE"
-                        autoComplete="off"
-                    />
-                </DialogContent>
-                <DialogActions sx={{ p: '16px 24px' }}>
-                    <Button onClick={closeDeleteDialog} variant="outlined" color="secondary">
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleDeleteAccount}
-                        variant="contained"
-                        color="error"
-                        disabled={confirmationText !== 'DELETE'}
-                    >
-                        Delete My Account
-                    </Button>
-                </DialogActions>
-            </Dialog>
         </header>
     );
 }

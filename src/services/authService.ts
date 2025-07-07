@@ -8,7 +8,9 @@ import {
     deleteUser,
     GoogleAuthProvider,
     signInWithPopup,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    updateProfile,
+    updatePassword
 } from 'firebase/auth';
 import { auth } from './config';
 import toast from 'react-hot-toast';
@@ -126,6 +128,38 @@ export const sendPasswordResetLink = async (email: string): Promise<void> => {
         await sendPasswordResetEmail(auth, email);
     } catch (error) {
         console.error("Error sending password reset email:", error);
+        throw error;
+    }
+};
+
+/**
+ * Updates the current user's profile information (displayName, photoURL).
+ * @param updates - An object containing the displayName and/or photoURL to update.
+ */
+export const updateUserProfile = async (updates: { displayName?: string; photoURL?: string }): Promise<void> => {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No user is signed in.");
+
+    try {
+        await updateProfile(user, updates);
+    } catch (error) {
+        console.error("Error updating user profile:", error);
+        throw error;
+    }
+};
+
+/**
+ * Updates the current user's password. Requires recent login.
+ * @param newPassword - The new password for the user.
+ */
+export const updateUserPassword = async (newPassword: string): Promise<void> => {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No user is signed in.");
+
+    try {
+        await updatePassword(user, newPassword);
+    } catch (error) {
+        console.error("Error updating password:", error);
         throw error;
     }
 };
