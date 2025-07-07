@@ -16,6 +16,8 @@ import toast from 'react-hot-toast';
 export interface AppUser {
     uid: string;
     email: string | null;
+    displayName: string | null;
+    photoURL: string | null;
 }
 
 const googleProvider = new GoogleAuthProvider();
@@ -96,6 +98,8 @@ export const onAuthUserChanged = (callback: (user: AppUser | null) => void) => {
             const appUser: AppUser = {
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
+                displayName: firebaseUser.displayName,
+                photoURL: firebaseUser.photoURL,
             };
             callback(appUser);
         } else {
