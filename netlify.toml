@@ -1,5 +1,8 @@
 [functions]
 directory = "netlify/functions/"
 
-[functions.cron]
+[functions.notifications]
+schedule = "*/2 * * * *"
+
+[functions.transferOwnership]
 schedule = "*/2 * * * *"
