@@ -165,7 +165,7 @@ const AuthPage: React.FC = () => {
                     </Link>
 
                     <h2>Reset Password</h2>
-                    <p style={{ fontSize: '0.9em', color: '#555', textAlign: 'center', marginBottom: '20px' }}>
+                    <p style={{ fontSize: '0.9em', color: '#555', textAlign: 'center', marginBottom: '20px', fontFamily: 'Rubik' }}>
                         Enter your account's email to receive a password reset link.
                     </p>
 
@@ -199,7 +199,7 @@ const AuthPage: React.FC = () => {
                         </Form.Submit>
                     </Form.Root>
 
-                    <p className="auth-toggle-prompt">
+                    <p className="auth-toggle-prompt" style={{fontFamily: 'Rubik'}}>
                         Remembered your password?
                         <button onClick={() => { setView('login'); resetFormState(); }} className="auth-toggle-button" disabled={isLoading}>
                             Back to Login
@@ -318,7 +318,7 @@ const AuthPage: React.FC = () => {
                     </Form.Submit>
                 </Form.Root>
 
-                <p className="auth-toggle-prompt">
+                <p className="auth-toggle-prompt" style={{fontFamily: 'Rubik'}}>
                     {view === 'login' ? "Don't have an account?" : 'Already have an account?'}
                     <button onClick={() => { setView(view === 'login' ? 'signup' : 'login'); resetFormState(); }} className="auth-toggle-button" disabled={isLoading}>
                         {view === 'login' ? 'Sign Up' : 'Login'}

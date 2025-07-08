@@ -47,7 +47,7 @@ const AccountPage: React.FC = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <Toolbar sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid', borderColor: 'grey.200' }}>
                  <img src='/ground.png' alt="Logo" style={{ height: 32 }} />
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                <Typography fontFamily={"Rubik"} variant="h6" sx={{ fontWeight: 'bold' }}>
                     Account Center
                 </Typography>
             </Toolbar>
@@ -96,7 +96,7 @@ const AccountPage: React.FC = () => {
                             >
                                 <MenuIcon />
                             </IconButton>
-                            <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold' }}>
+                            <Typography fontFamily={"Rubik"}variant="h6" noWrap component="div" sx={{ fontWeight: 'bold' }}>
                                 Account Center
                             </Typography>
                         </Toolbar>
