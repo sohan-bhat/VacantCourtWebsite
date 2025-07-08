@@ -13,6 +13,28 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import AccountPage from './components/account/AccountPage';
 import ProfileSettings from './components/account/ProfileSettings';
 import SubscriptionManager from './components/account/SubscriptionManager';
+import { useEffect } from 'react';
+
+declare global {
+    interface Window {
+        gtag?: (command: string, target: string, config: { page_path: string }) => void;
+    }
+}
+
+const AnalyticsTracker: React.FC = () => {
+    const location = useLocation();
+    const GA_MEASUREMENT_ID = import.meta.env.VITE_GOOGLE_ANALYTICS_ID;
+
+    useEffect(() => {
+        if (window.gtag && GA_MEASUREMENT_ID) {
+            window.gtag('config', GA_MEASUREMENT_ID, {
+                page_path: location.pathname,
+            });
+        }
+    }, [location.pathname, GA_MEASUREMENT_ID]);
+
+    return null;
+};
 
 const AppContent: React.FC = () => {
     const location = useLocation();
@@ -60,6 +82,7 @@ const AppContent: React.FC = () => {
 function App() {
     return (
         <Router>
+            <AnalyticsTracker />
             <AppContent />
             <Toaster
                 position="top-center"
