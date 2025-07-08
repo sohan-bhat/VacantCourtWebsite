@@ -19,21 +19,104 @@ import {
     Radio,
     TextField,
     Typography,
-    Chip,
-    FormControl,
-    FormLabel
+    FormControl
 } from '@mui/material';
-import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest'
+import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import toast from 'react-hot-toast';
 import EmailIcon from '@mui/icons-material/Email';
 import SmsIcon from '@mui/icons-material/Sms';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 import { MuiTelInput, matchIsValidTel } from 'mui-tel-input';
-
 import { useAuth } from '../auth/AuthContext';
 import { addNotificationRequest, getNotificationRequestForUser, removeNotificationRequest } from '../../services/notificationService';
+
+function SingleCourtCard({ court }: { court: CourtCardSummary }) {
+    const [isStale, setIsStale] = useState(false);
+
+    useEffect(() => {
+        const STALE_THRESHOLD_SECONDS = 297; // 3 less than 5 minutes because of bug
+
+        const calculateStaleness = () => {
+            const timestampValue = court.lastUpdatedStatus;
+            if (!timestampValue) {
+                setIsStale(false);
+                return;
+            }
+
+            let lastUpdatedSeconds = 0;
+            if (typeof timestampValue === 'object' && timestampValue !== null && typeof timestampValue.seconds === 'number') {
+                lastUpdatedSeconds = timestampValue.seconds;
+            }
+            else if (typeof timestampValue === 'number') {
+                lastUpdatedSeconds = timestampValue / 1000;
+            }
+
+            if (lastUpdatedSeconds > 0) {
+                const nowSeconds = Date.now() / 1000;
+                setIsStale((nowSeconds - lastUpdatedSeconds) > STALE_THRESHOLD_SECONDS);
+            } else {
+                setIsStale(false);
+            }
+        };
+
+        calculateStaleness();
+
+        const intervalId = setInterval(calculateStaleness, 3000);
+
+        return () => clearInterval(intervalId);
+
+    }, [court.lastUpdatedStatus]);
+
+    return (
+        <div className={`court-card ${!court.isComplexConfigured ? 'court-card-unconfigured' : ''}`}>
+            <div className="court-info">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <h3 className="court-name" style={{ margin: '0 0 10px 0', flexGrow: 1, opacity: court.isComplexConfigured ? 1 : 0.7 }}>
+                        {court.name}
+                    </h3>
+                    {court.isComplexConfigured && court.available === 0 && (
+                        <NotificationButton court={court} />
+                    )}
+                    {!court.isComplexConfigured && (
+                        <Tooltip title="This facility's courts are not yet configured in the system.">
+                            <SettingsSuggestIcon color="disabled" sx={{ mb: 1.5 }} />
+                        </Tooltip>
+                    )}
+                </div>
+                <p className="court-type" style={{ fontFamily: 'Rubik', opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.type}</p>
+                <p className="court-location" style={{ fontFamily: 'Rubik', opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.location}</p>
+
+                <Box className="availability-indicator" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        {!court.isComplexConfigured ? (
+                            <span className={`availability-status unconfigured`}>Not Configured</span>
+                        ) : court.available > 0 ? (
+                            <span className={`availability-status available`}>Available</span>
+                        ) : (
+                            <span className={`availability-status unavailable`}>Unavailable</span>
+                        )}
+                        {isStale && (
+                            <Tooltip title="Status data may be outdated. The monitoring hardware appears to be offline.">
+                                <WarningAmberIcon sx={{ color: 'warning.main', ml: 2, verticalAlign: 'middle', fontSize: '25px' }} />
+                            </Tooltip>
+                        )}
+                    </Box>
+
+                    <span className={`court-count ${!court.isComplexConfigured ? 'unconfigured-count' : ''}`}>
+                        {!court.isComplexConfigured ? `(${court.total} total courts)` : `${court.available} / ${court.total} courts`}
+                    </span>
+                </Box>
+            </div>
+            <div className="court-actions">
+                <Link to={`/court/${court.id}`} className="view-details">View Details</Link>
+            </div>
+        </div>
+    );
+}
 
 
 interface NotificationButtonProps {
@@ -154,7 +237,7 @@ function NotificationButton({ court }: NotificationButtonProps) {
                         size="small"
                         onClick={handleBellClick}
                         disabled={state === 'loading' || state === 'error'}
-                        sx={{ ml: 1 }}
+                        sx={{ ml: 1, position: 'relative', bottom: '0.3rem' }}
                     >
                         {state === 'loading' && <CircularProgress size={20} color="inherit" />}
                         {state === 'idle' && <NotificationsIcon />}
@@ -236,7 +319,6 @@ function NotificationButton({ court }: NotificationButtonProps) {
                                         </Paper>
                                     </span>
                                 </Tooltip>
-
                             </RadioGroup>
                         </FormControl>
                         <DialogContentText variant="caption" sx={{ textAlign: 'center', mt: 1 }}>
@@ -291,12 +373,10 @@ function CourtCard({
 }: CourtCardProps) {
 
     const displayedCourts = courts.filter(court => {
-        const matchesType = currentFilterType === 'all' || court.type.toLowerCase() === currentFilterType!.toLowerCase();
-
-        const matchesSearch = currentSearchTerm === '' ||
-            court.name.toLowerCase().includes(currentSearchTerm!.toLowerCase()) ||
-            court.location.toLowerCase().includes(currentSearchTerm!.toLowerCase());
-
+        const matchesType = !currentFilterType || currentFilterType === 'all' || court.type.toLowerCase() === currentFilterType.toLowerCase();
+        const matchesSearch = !currentSearchTerm ||
+            court.name.toLowerCase().includes(currentSearchTerm.toLowerCase()) ||
+            court.location.toLowerCase().includes(currentSearchTerm.toLowerCase());
         const passesBasicFilters = matchesType && matchesSearch;
 
         if (isProximityFilteringActive) {
@@ -304,13 +384,10 @@ function CourtCard({
                 court.distanceKm !== undefined &&
                 court.distanceKm <= maxDistanceKm!;
         }
-
         return passesBasicFilters;
     });
 
-
     let noResultsMessage = "No courts found matching your criteria";
-
     if (!loading && displayedCourts.length === 0) {
         if (isProximityFilteringActive) {
             noResultsMessage = `No courts found near you. Try adjusting your search or disabling proximity sorting.`;
@@ -318,7 +395,6 @@ function CourtCard({
             noResultsMessage = "No courts found matching your current filters.";
         }
     }
-
 
     return (
         <div className="court-list">
@@ -329,58 +405,7 @@ function CourtCard({
                     <div className="no-results">{noResultsMessage}</div>
                 ) : (
                     displayedCourts.map(court => (
-                        <div key={court.id} className={`court-card ${!court.isComplexConfigured ? 'court-card-unconfigured' : ''}`}>
-                            <div className="court-info">
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                                    <h3 className="court-name" style={{ margin: '0 0 10px 0', flexGrow: 1, opacity: court.isComplexConfigured ? 1 : 0.7 }}>
-                                        {court.name}
-                                    </h3>
-
-                                    {court.isComplexConfigured && court.available === 0 && (
-                                        <NotificationButton court={court} />
-                                    )}
-
-                                    {!court.isComplexConfigured && (
-                                        <Tooltip title="This facility's courts are not yet configured in the system.">
-                                            <SettingsSuggestIcon color="disabled" sx={{ mb: 1.5 }} />
-                                        </Tooltip>
-                                    )}
-                                </div>
-
-                                <p className="court-type" style={{ fontFamily: 'Rubik', opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.type}</p>
-                                <p className="court-location" style={{ fontFamily: 'Rubik', opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.location}</p>
-
-                                <div className="availability-indicator">
-                                    {!court.isComplexConfigured ? (
-                                        <>
-                                            <span className={`availability-status unconfigured`}>
-                                                Not Configured
-                                            </span>
-                                            <span className="court-count unconfigured-count">
-                                                ({court.total} total courts)
-                                            </span>
-                                        </>
-                                    ) : court.available > 0 ? (
-                                        <>
-                                            <span className={`availability-status available`}>
-                                                Available
-                                            </span>
-                                            <span className="court-count">{court.available} / {court.total} courts</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className={`availability-status unavailable`}>
-                                                Unavailable
-                                            </span>
-                                            <span className="court-count">{court.available} / {court.total} courts</span>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="court-actions">
-                                <Link to={`/court/${court.id}`} className="view-details">View Details</Link>
-                            </div>
-                        </div>
+                        <SingleCourtCard key={court.id} court={court} />
                     ))
                 )
             )}
