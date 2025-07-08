@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import CourtSchedule from './CourtSchedule';
+import TransferOwnershipDialog from '../dialog/TransferOwnershipDialog';
 import { Court, subscribeToCourtById } from '../../data/courtData';
 import EditCourt from './EditCourt';
 import '../../styles/courts/CourtDetails.css';
@@ -33,6 +34,7 @@ import PlaceIcon from '@mui/icons-material/Place';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import { useAuth } from '../auth/AuthContext';
 import { deleteDocument } from '../../services/firestoreSerivce';
 import { useNavigate } from 'react-router-dom';
@@ -104,6 +106,9 @@ function CourtDetails() {
     const imagePanelRef = useRef<HTMLDivElement>(null);
     const detailsPanelRef = useRef<HTMLDivElement>(null);
     const [panelsMinHeight, setPanelsMinHeight] = useState<number | 'auto'>('auto');
+
+    const [court, setCourt] = useState<Court | null>(null);
+    const [isTransferDialogOpen, setTransferDialogOpen] = useState(false); // <-- ADD STATE
 
     const navigate = useNavigate();
 
@@ -251,14 +256,14 @@ function CourtDetails() {
                                 <ArrowBackIcon />
                             </IconButton>
                         </Link>
-                        <Typography variant={isMobileView ? "h5" : "h4"} component="h2" sx={{
+                        <Typography fontFamily={"Rubik"}variant={isMobileView ? "h5" : "h4"} component="h2" sx={{
                             ml: { xs: 1, sm: 2 },
                             color: 'primary.dark',
                             fontWeight: 700,
                             flexShrink: 1,
                             minWidth: 0,
                             wordBreak: 'break-word',
-                            fontFamily: 'Poppins'
+                            fontFamily: 'Rubik'
                         }}>
                             {courtDetails.name}
                         </Typography>
@@ -273,7 +278,7 @@ function CourtDetails() {
                             whiteSpace: 'nowrap',
                             flexShrink: 0,
                             border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                            fontFamily: 'Poppins'
+                            fontFamily: 'Rubik'
                         }}>
                             {courtDetails.type}
                         </Box>
@@ -286,10 +291,17 @@ function CourtDetails() {
                             <IconButton onClick={handleOpenDeleteConfirm} color="error" aria-label="delete court" sx={{ border: `1px solid ${theme.palette.error.main}`, borderRadius: '8px', p: 0.75 }}>
                                 <DeleteForeverIcon />
                             </IconButton>
+                            <IconButton
+                                color="secondary"
+                                onClick={() => setTransferDialogOpen(true)}
+                                sx={{ border: `1px solid ${theme.palette.secondary.main}`, borderRadius: '8px', p: 0.75 }}
+                            >
+                                <SwapHorizIcon />
+                            </IconButton>
                         </Box>
                     )}
                 </Box>
-    
+
                 {isMobileView && (
                     <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                         <Tabs
@@ -325,7 +337,7 @@ function CourtDetails() {
                         </Tabs>
                     </Box>
                 )}
-    
+
                 <Box sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', md: 'row' },
@@ -380,13 +392,13 @@ function CourtDetails() {
                                             )}
                                         </>
                                     ) : (
-                                        <Typography variant="body1" color="text.secondary">No Images Available</Typography>
+                                        <Typography fontFamily={"Rubik"}variant="body1" color="text.secondary">No Images Available</Typography>
                                     )}
                                 </Box>
-    
+
                                 {courtDetails.amenities && courtDetails.amenities.length > 0 && (
                                     <Box sx={{ p: { xs: 2, sm: 2.5 } }}>
-                                        <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                                        <Typography fontFamily={"Rubik"}variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
                                             Amenities
                                         </Typography>
                                         <Grid container spacing={1}>
@@ -394,7 +406,7 @@ function CourtDetails() {
                                                 <Grid key={index}>
                                                     <ListItem disableGutters sx={{ py: 0.5 }}>
                                                         <ListItemIcon sx={{ minWidth: 35, color: 'success.main' }}><CheckCircleOutlineIcon /></ListItemIcon>
-                                                        <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{ fontSize: '0.9rem' }}>{amenity}</Typography>} />
+                                                        <ListItemText primary={<Typography fontFamily={"Rubik"}variant="body2" color="text.primary" sx={{ fontSize: '0.9rem' }}>{amenity}</Typography>} />
                                                     </ListItem>
                                                 </Grid>
                                             ))}
@@ -404,7 +416,7 @@ function CourtDetails() {
                             </Paper>
                         </Box>
                     )}
-    
+
                     {(!isMobileView || (isMobileView && activeTab === 0)) && (
                         <Box sx={{ flex: { md: '1 1 50%' }, minWidth: 0 }}>
                             <Paper elevation={3} sx={{
@@ -416,41 +428,41 @@ function CourtDetails() {
                             }}>
                                 {courtDetails.description && (
                                     <Box sx={{ mb: 3 }}>
-                                        <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                                        <Typography fontFamily={"Rubik"}variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
                                             About
                                         </Typography>
-                                        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1rem', lineHeight: 1.6 }}>
+                                        <Typography fontFamily={"Rubik"}variant="body1" color="text.secondary" sx={{ fontSize: '1rem', lineHeight: 1.6 }}>
                                             {courtDetails.description}
                                         </Typography>
                                     </Box>
                                 )}
                                 <Box>
-                                    <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                                    <Typography fontFamily={"Rubik"}variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
                                         Contact & Location
                                     </Typography>
                                     <List dense disablePadding>
                                         {courtDetails.location && (
                                             <ListItem disableGutters sx={{ py: 0.5 }}>
                                                 <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><PlaceIcon /></ListItemIcon>
-                                                <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>General Area: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.location}</Typography></Typography>} />
+                                                <ListItemText primary={<Typography fontFamily={"Rubik"}variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>General Area: <Typography fontFamily={"Rubik"}component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.location}</Typography></Typography>} />
                                             </ListItem>
                                         )}
                                         {courtDetails.address && (
                                             <ListItem disableGutters sx={{ py: 0.5 }}>
                                                 <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><LocationOnIcon /></ListItemIcon>
-                                                <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Address: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.address}</Typography></Typography>} />
+                                                <ListItemText primary={<Typography fontFamily={"Rubik"}variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Address: <Typography fontFamily={"Rubik"}component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.address}</Typography></Typography>} />
                                             </ListItem>
                                         )}
                                         {courtDetails.phone && (
                                             <ListItem disableGutters sx={{ py: 0.5 }}>
                                                 <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><PhoneIcon /></ListItemIcon>
-                                                <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Phone: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.phone}</Typography></Typography>} />
+                                                <ListItemText primary={<Typography fontFamily={"Rubik"}variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Phone: <Typography fontFamily={"Rubik"}component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.phone}</Typography></Typography>} />
                                             </ListItem>
                                         )}
                                         {courtDetails.hours && (
                                             <ListItem disableGutters sx={{ py: 0.5 }}>
                                                 <ListItemIcon sx={{ minWidth: 35, color: 'primary.main' }}><AccessTimeIcon /></ListItemIcon>
-                                                <ListItemText primary={<Typography variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Hours: <Typography component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.hours}</Typography></Typography>} />
+                                                <ListItemText primary={<Typography fontFamily={"Rubik"}variant="body2" color="text.primary" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Hours: <Typography fontFamily={"Rubik"}component="span" variant="body2" color="text.primary" fontWeight={500}>{courtDetails.hours}</Typography></Typography>} />
                                             </ListItem>
                                         )}
                                         {courtDetails.address && (
@@ -478,36 +490,50 @@ function CourtDetails() {
                         </Box>
                     )}
                 </Box>
-    
+
                 {(!isMobileView || (isMobileView && activeTab === 1)) && (
                     <Box sx={{ mt: { xs: 2, md: 4 } }}>
                         <Paper elevation={3} sx={{
                             p: { xs: 2, sm: 2.5 },
                             borderRadius: theme.shape.borderRadius,
                         }}>
-                            <Typography variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600, fontFamily: 'Poppins' }}>
+                            <Typography fontFamily={"Rubik"}variant="h6" component="h3" color="primary.dark" gutterBottom sx={{ fontSize: '1.1rem', fontWeight: 600, fontFamily: 'Rubik' }}>
                                 Court Availability
                             </Typography>
                             {courtDetails.courts && courtDetails.courts.length > 0 ? (
                                 <CourtSchedule courts={courtDetails.courts} />
                             ) : (
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontSize: '0.9rem' }}>
+                                <Typography fontFamily={"Rubik"}variant="body2" color="text.secondary" sx={{ mt: 2, fontSize: '0.9rem' }}>
                                     No individual courts have been configured for this facility yet.
                                 </Typography>
                             )}
                         </Paper>
                     </Box>
                 )}
-            </Box>
-    
+            </Box >
+
             {courtDetails && (
+                <>
                 <EditCourt
                     open={editModalOpen}
                     onClose={handleCloseEditModal}
                     court={courtDetails}
                 />
+
+                    <TransferOwnershipDialog
+                    open={isTransferDialogOpen}
+                    onClose={() => setTransferDialogOpen(false)}
+                    courtId={courtDetails.id}
+                    courtName={courtDetails.name}
+                    onSuccess={() => {
+                        setTransferDialogOpen(false);
+                        navigate('/');
+                    }} />
+                </>
             )}
-    
+
+
+
             <ConfirmationDialog
                 open={deleteConfirmOpen}
                 onClose={handleCloseDeleteConfirm}

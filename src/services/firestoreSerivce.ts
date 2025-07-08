@@ -16,6 +16,7 @@ import {
     WhereFilterOp as FirebaseWhereFilterOp
 } from 'firebase/firestore';
 import { db } from './config';
+import { getAuth } from 'firebase/auth';
 
 export interface FirestoreDocWithId {
     id: string;

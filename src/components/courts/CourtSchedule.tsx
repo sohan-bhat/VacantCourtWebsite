@@ -46,8 +46,8 @@ function CourtSchedule({ courts }: CourtScheduleProps) {
                     <div key={key} className={`court-item ${statusClassName}`}>
                         <div className="court-item-info">
                             <h4>{court.name}</h4>
-                            {court.surface ? <p className="court-surface">{court.surface} court</p> : null}
-                            <p className={`court-status-text ${statusClassName}`}>
+                            {court.surface ? <p style={{fontFamily: 'Rubik'}}className="court-surface">{court.surface} court</p> : null}
+                            <p style={{fontFamily: 'Rubik'}}className={`court-status-text ${statusClassName}`}>
                                 {displayStatusText}
                             </p>
                         </div>

@@ -256,6 +256,7 @@ function Dashboard() {
                             <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mr: 1 }}>
                                 {isMobile ? null : <LocationOn color="success" sx={{ fontSize: '1.1rem' }} />}
                                 <Typography
+                                    fontFamily={["Poppins"]}
                                     variant="body2"
                                     sx={{
                                         whiteSpace: 'nowrap',
@@ -377,10 +378,10 @@ function Dashboard() {
                     Find Courts Near You
                 </DialogTitle>
                 <DialogContent sx={{ p: { xs: 2, sm: 3 }, pt: { xs: '15px !important', sm: '20px !important' } }}>
-                    <Typography variant="body1" sx={{ mb: 2 }}>
+                    <Typography fontFamily={"Rubik"}variant="body1" sx={{ mb: 2 }}>
                         Allow access to your location to see the closest courts first.
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography fontFamily={"Rubik"}variant="body2" color="text.secondary">
                         This will allow us to sort available courts by their proximity to you, putting the closest options first. Your location data is used only for this purpose and is not stored on our servers.
                     </Typography>
                 </DialogContent>

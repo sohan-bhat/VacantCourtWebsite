@@ -30,7 +30,7 @@
     transition: all 0.2s ease-in-out;
     white-space: nowrap;
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    font-family: 'Poppins';
+    font-family: 'Rubik','Poppins';
 }
 
 .filter-types button:hover,

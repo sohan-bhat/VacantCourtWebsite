@@ -155,10 +155,10 @@ function Header() {
                                             alignItems: 'flex-start',
                                             color: 'white'
                                         }}>
-                                            <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.2 }}>
+                                            <Typography fontFamily={"Rubik"}sx={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.2 }}>
                                                 {currentUser.displayName || 'User'}
                                             </Typography>
-                                            <Typography sx={{ fontSize: '0.75rem', opacity: 0.8, lineHeight: 1.2, marginRight: '5px' }}>
+                                            <Typography fontFamily={"Rubik"}sx={{ fontSize: '0.75rem', opacity: 0.8, lineHeight: 1.2, marginRight: '5px' }}>
                                                 {currentUser.email}
                                             </Typography>
                                         </Box>
@@ -187,22 +187,22 @@ function Header() {
                             >
                                 <MenuItem component={Link} to="/about" onClick={handleMenuClose}>
                                     <ListItemIcon><InfoIcon fontSize="small" /></ListItemIcon>
-                                    <ListItemText>About</ListItemText>
+                                    <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>About</ListItemText>
                                 </MenuItem>
                                 <MenuItem component={Link} to="/contact" onClick={handleMenuClose}>
                                     <ListItemIcon><ContactMailIcon fontSize="small" /></ListItemIcon>
-                                    <ListItemText>Contact</ListItemText>
+                                    <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>Contact</ListItemText>
                                 </MenuItem>
 
                                 <Divider sx={{ my: 0.5 }} />
 
                                 <MenuItem component={Link} to="/privacy" onClick={handleMenuClose}>
                                     <ListItemIcon><PrivacyTipIcon fontSize="small" /></ListItemIcon>
-                                    <ListItemText>Privacy Policy</ListItemText>
+                                    <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>Privacy Policy</ListItemText>
                                 </MenuItem>
                                 <MenuItem component={Link} to="/tos" onClick={handleMenuClose}>
                                     <ListItemIcon><GavelIcon fontSize="small" /></ListItemIcon>
-                                    <ListItemText>Terms of Service</ListItemText>
+                                    <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>Terms of Service</ListItemText>
                                 </MenuItem>
 
                                 {currentUser && <Divider sx={{ my: 0.5 }} />}
@@ -210,13 +210,13 @@ function Header() {
                                 {currentUser && (
                                     <MenuItem onClick={handleSettings}>
                                         <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
-                                        <ListItemText>Account Settings</ListItemText>
+                                        <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>Account Settings</ListItemText>
                                     </MenuItem>
                                 )}
                                 {currentUser && (
                                     <MenuItem onClick={handleLogout}>
                                         <ListItemIcon><ExitToAppIcon fontSize="small" /></ListItemIcon>
-                                        <ListItemText>Log Out</ListItemText>
+                                        <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>Log Out</ListItemText>
                                     </MenuItem>
                                 )}
                             </Menu>

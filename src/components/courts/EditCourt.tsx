@@ -357,7 +357,7 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                 </Alert>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <Box ref={basicInfoRef}>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Information</Typography>
+                        <Typography fontFamily={"Rubik"}variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Information</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <TextField required label="Facility Name" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} error={!!errors.name} helperText={errors.name} />
                             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
@@ -368,8 +368,8 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                     </Box>
                     <Divider />
                     <Box ref={contactInfoRef}>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Details</Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Facility contact information</Typography>
+                        <Typography fontFamily={"Rubik"}variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Details</Typography>
+                        <Typography fontFamily={"Rubik"}variant="body2" color="text.secondary" sx={{ mb: 2 }}>Facility contact information</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <Autocomplete
                                 fullWidth
@@ -427,7 +427,7 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                     </Box>
                     <Divider />
                     <Box>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Amenities</Typography>
+                        <Typography fontFamily={"Rubik"}variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Amenities</Typography>
                         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mb: 2, alignItems: { sm: 'center' } }}>
                             <TextField size="small" value={amenityInput} onChange={(e) => setAmenityInput(e.target.value)} placeholder="Enter an amenity" fullWidth />
                             <Button onClick={handleAddAmenity} variant="contained" size="small" sx={{ minWidth: '100px', width: { xs: '100%', sm: 'auto' }, bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#1e3a8a', opacity: 0.9 } }}>Add</Button>
@@ -440,8 +440,8 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                     </Box>
                     <Divider />
                     <Box ref={courtsRef}>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Individual Courts</Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        <Typography fontFamily={"Rubik"}variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Individual Courts</Typography>
+                        <Typography fontFamily={"Rubik"}variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                             Note: Court statuses ('available', 'in-use') are updated live and not edited here.
                         </Typography>
                         <Box sx={{ mb: 2 }}>
@@ -450,7 +450,7 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                                     <TextField required size="small" label="Court Name/Number" value={subCourt.name} onChange={(e) => handleSubCourtChange(index, 'name', e.target.value)} error={!!(errors.courts?.[index]?.name)} helperText={errors.courts?.[index]?.name} fullWidth />
                                     <TextField required size="small" label="Surface Type" value={subCourt.surface} onChange={(e) => handleSubCourtChange(index, 'surface', e.target.value)} error={!!(errors.courts?.[index]?.surface)} helperText={errors.courts?.[index]?.surface} fullWidth />
                                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '120px' }}>
-                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                        <Typography fontFamily={"Rubik"}variant="body2" sx={{ color: 'text.secondary' }}>
                                             Status: {subCourt.status}
                                         </Typography>
                                         {!subCourt.isConfigured && (
@@ -467,12 +467,12 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                     </Box>
                     <Divider />
                     <Box ref={descriptionRef}>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Description</Typography>
+                        <Typography fontFamily={"Rubik"}variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Description</Typography>
                         <TextField required multiline rows={4} value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)} error={!!errors.description} helperText={errors.description} fullWidth />
                     </Box>
                     <Divider />
                     <Box>
-                        <Typography variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Images</Typography>
+                        <Typography fontFamily={"Rubik"}variant="h6" sx={{ color: '#1e3a8a' }} gutterBottom>Facility Images</Typography>
                         <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
                             {existingImageUrls.map((url, index) => (
                                 <Box key={`existing-${url}-${index}`} sx={{ position: 'relative', width: { xs: 'calc(50% - 6px)', sm: 150 }, height: { xs: 120, sm: 150 }, borderRadius: 1, overflow: 'hidden', border: '1px solid #ddd' }}>
@@ -503,8 +503,8 @@ export default function EditCourt({ open, onClose, court }: EditCourtProps) {
                                 <Box component="label" sx={{ width: { xs: 'calc(50% - 6px)', sm: 150 }, height: { xs: 120, sm: 150 }, border: '2px dashed #ccc', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', cursor: 'pointer', '&:hover': { borderColor: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.04)' } }}>
                                     <input autoComplete='off' type="file" hidden accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { handleAddNewImage(file); e.target.value = ''; } }} />
                                     <AddPhotoAlternateIcon sx={{ fontSize: { xs: 30, sm: 40 }, color: '#666', mb: 1 }} />
-                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Add Image</Typography>
-                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>(Max 5)</Typography>
+                                    <Typography fontFamily={"Rubik"}variant="body2" color="text.secondary" sx={{ textAlign: 'center', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Add Image</Typography>
+                                    <Typography fontFamily={"Rubik"}variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>(Max 5)</Typography>
                                 </Box>
                             )}
                         </Box>

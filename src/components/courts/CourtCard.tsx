@@ -187,7 +187,7 @@ function NotificationButton({ court }: NotificationButtonProps) {
                                     <FormControlLabel value="email" control={<Radio />} label={
                                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                             <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                                            <Typography variant="body1" sx={{ fontWeight: 500 }}>Email Notification</Typography>
+                                            <Typography fontFamily={"Rubik"}variant="body1" sx={{ fontWeight: 500 }}>Email Notification</Typography>
                                         </Box>
                                     } />
                                     <TextField
@@ -220,7 +220,7 @@ function NotificationButton({ court }: NotificationButtonProps) {
                                                 label={
                                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                         <SmsIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                                                        <Typography variant="body1" sx={{ fontWeight: 500 }}>SMS Notification</Typography>
+                                                        <Typography fontFamily={"Rubik"}variant="body1" sx={{ fontWeight: 500 }}>SMS Notification</Typography>
                                                     </Box>
                                                 }
                                             />
@@ -347,8 +347,8 @@ function CourtCard({
                                     )}
                                 </div>
 
-                                <p className="court-type" style={{ opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.type}</p>
-                                <p className="court-location" style={{ opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.location}</p>
+                                <p className="court-type" style={{ fontFamily: 'Rubik', opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.type}</p>
+                                <p className="court-location" style={{ fontFamily: 'Rubik', opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.location}</p>
 
                                 <div className="availability-indicator">
                                     {!court.isComplexConfigured ? (
