@@ -3,7 +3,7 @@ import {
     Dialog, DialogTitle, DialogContent, DialogContentText, TextField,
     DialogActions, Button, CircularProgress, Box
 } from '@mui/material';
-import { transferCourtOwnership } from '../../services/firestoreSerivce';
+import { transferCourtOwnership } from '../../services/courtSerivce';
 import toast from 'react-hot-toast';
 
 interface TransferOwnershipDialogProps {
@@ -53,6 +53,7 @@ const TransferOwnershipDialog: React.FC<TransferOwnershipDialogProps> = ({ open,
                     margin="dense"
                     id="email"
                     label="New Owner's Email Address"
+                    autoComplete='off'
                     type="email"
                     fullWidth
                     variant="outlined"

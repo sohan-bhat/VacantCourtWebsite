@@ -1,69 +1,115 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import {
     Box, Typography, Paper, TextField, Button, Avatar, Badge,
     IconButton, CircularProgress, Stack, Alert, InputAdornment,
-    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
+    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, List, ListItem, ListItemText, Slider
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
+
+import Cropper, { Area } from 'react-easy-crop';
+import getCroppedImg from '../../services/cropImage';
+
 import { updateUserProfile, updateUserPassword, deleteCurrentUserAccount } from '../../services/authService';
 import { uploadImage } from '../../services/storageService';
 import toast from 'react-hot-toast';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../services/config';
 
 const ProfileSettings: React.FC = () => {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [displayName, setDisplayName] = useState(currentUser?.displayName || '');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-    const [isUploading, setIsUploading] = useState(false);
     const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
     const [isUpdatingPass, setIsUpdatingPass] = useState(false);
-
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [confirmationText, setConfirmationText] = useState('');
+    const [ownershipWarningOpen, setOwnershipWarningOpen] = useState(false);
+    const [ownedCourts, setOwnedCourts] = useState<string[]>([]);
+    const [isCheckingOwnership, setIsCheckingOwnership] = useState(false);
 
-    const openDeleteDialog = () => setDeleteDialogOpen(true);
-    const closeDeleteDialog = () => {
-        setDeleteDialogOpen(false);
-        setConfirmationText('');
+    const [isPictureDialogOpen, setIsPictureDialogOpen] = useState(false);
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+
+
+
+    const handleAvatarClick = () => {
+        setIsPictureDialogOpen(true);
     };
 
-    const handleAvatarClick = () => fileInputRef.current?.click();
+    const closePictureDialog = () => {
+        setIsPictureDialogOpen(false);
+        setTimeout(() => {
+            setImageSrc(null);
+            setZoom(1);
+            setCrop({ x: 0, y: 0 });
+        }, 300);
+    };
+    
+    const handleUploadButtonClick = () => {
+        fileInputRef.current?.click();
+    };
 
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file || !currentUser) return;
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files.length > 0) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                setImageSrc(reader.result as string);
+            });
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+    };
+
+    const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+        setCroppedAreaPixels(croppedAreaPixels);
+    }, []);
+
+    const handleUploadCroppedImage = async () => {
+        if (!croppedAreaPixels || !imageSrc || !currentUser) return;
 
         setIsUploading(true);
         const toastId = toast.loading('Uploading picture...');
+
         try {
-            const photoURL = await uploadImage(file, currentUser.uid);
+            const croppedImageFile = await getCroppedImg(imageSrc, croppedAreaPixels);
+            if (!croppedImageFile) throw new Error('Could not crop image.');
+            
+            const photoURL = await uploadImage(croppedImageFile, currentUser.uid);
             await updateUserProfile({ photoURL });
+            
             toast.success('Profile picture updated!', { id: toastId });
+            closePictureDialog();
             window.location.reload();
         } catch (error) {
+            console.error(error);
             toast.error('Failed to upload image.', { id: toastId });
         } finally {
             setIsUploading(false);
         }
     };
 
+
+
     const handleProfileUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (displayName === currentUser?.displayName) return;
-
         setIsUpdatingProfile(true);
         try {
             await updateUserProfile({ displayName });
@@ -86,7 +132,6 @@ const ProfileSettings: React.FC = () => {
             toast.error("Password must be at least 6 characters long.");
             return;
         }
-
         setIsUpdatingPass(true);
         try {
             await updateUserPassword(newPassword);
@@ -103,23 +148,47 @@ const ProfileSettings: React.FC = () => {
         }
     };
 
+    const openDeleteDialog = async () => {
+        if (!currentUser) return;
+        setIsCheckingOwnership(true);
+        try {
+            const courtsRef = collection(db, "Courts");
+            const q = query(courtsRef, where("ownerId", "==", currentUser.uid));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const courtNames = querySnapshot.docs.map(doc => doc.data().name);
+                setOwnedCourts(courtNames);
+                setOwnershipWarningOpen(true);
+            } else {
+                setDeleteDialogOpen(true);
+            }
+        } catch (error) {
+            toast.error("Could not verify court ownership. Please try again.");
+        } finally {
+            setIsCheckingOwnership(false);
+        }
+    };
+
+    const closeDeleteDialog = () => {
+        setDeleteDialogOpen(false);
+        setConfirmationText('');
+    };
+
     const handleDeleteAccount = async () => {
         if (confirmationText !== 'DELETE') {
             toast.error('Please type DELETE to confirm.');
             return;
         }
-        
-        closeDeleteDialog();
         if (!currentUser) {
             toast.error("No user is signed in.");
             return;
         }
         try {
+            closeDeleteDialog();
             await deleteCurrentUserAccount();
             toast.success("Account deleted successfully.");
             navigate('/auth');
         } catch (error: any) {
-            console.error("Delete account error:", error);
             if (error.code === 'auth/requires-recent-login') {
                 toast.error("This operation is sensitive and requires recent authentication. Please log out and log back in to delete your account.");
             } else {
@@ -128,17 +197,14 @@ const ProfileSettings: React.FC = () => {
         }
     };
 
+
+
     const cardStyles = {
         p: { xs: 2, md: 4 },
         borderRadius: '16px',
         border: '1px solid rgba(0, 0, 0, 0.05)',
-        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
         boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
         background: 'linear-gradient(145deg, #ffffff, #f7f9fc)',
-        '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: '0 12px 24px rgba(0,0,0,0.1)',
-        },
     };
 
     const buttonStyles = {
@@ -146,13 +212,9 @@ const ProfileSettings: React.FC = () => {
         borderRadius: '8px',
         px: 3,
         py: 1.5,
-        transition: 'all 0.2s ease-in-out',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
-        '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
-        }
     };
+
+
 
     return (
         <>
@@ -167,7 +229,7 @@ const ProfileSettings: React.FC = () => {
                             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                             badgeContent={
                                 <IconButton onClick={handleAvatarClick} sx={{ bgcolor: 'primary.main', color: 'white', p: 1, boxShadow: '0 2px 5px rgba(0,0,0,0.2)', '&:hover': { bgcolor: 'primary.dark' } }}>
-                                    {isUploading ? <CircularProgress size={24} color="inherit" /> : <EditIcon />}
+                                    <EditIcon />
                                 </IconButton>
                             }
                         >
@@ -193,38 +255,8 @@ const ProfileSettings: React.FC = () => {
                     </Typography>
                     <Alert severity="warning" sx={{ mb: 3, borderRadius: '8px' }}>For your security, you will be logged out after a successful password change.</Alert>
                     <Stack spacing={3}>
-                        <TextField
-                            type={showNewPassword ? 'text' : 'password'}
-                            label="New Password"
-                            variant="filled"
-                            value={newPassword}
-                            onChange={e => setNewPassword(e.target.value)}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton onClick={() => setShowNewPassword(!showNewPassword)} edge="end">
-                                            {showNewPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                )
-                            }}
-                        />
-                        <TextField
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            label="Confirm New Password"
-                            variant="filled"
-                            value={confirmPassword}
-                            onChange={e => setConfirmPassword(e.target.value)}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
-                                            {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                )
-                            }}
-                        />
+                        <TextField type={showNewPassword ? 'text' : 'password'} label="New Password" variant="filled" value={newPassword} onChange={e => setNewPassword(e.target.value)} InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowNewPassword(!showNewPassword)} edge="end">{showNewPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>)}}/>
+                        <TextField type={showConfirmPassword ? 'text' : 'password'} label="Confirm New Password" variant="filled" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">{showConfirmPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>)}}/>
                     </Stack>
                     <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
                         <Button type="submit" variant="contained" sx={buttonStyles} disabled={isUpdatingPass || !newPassword}>
@@ -240,23 +272,96 @@ const ProfileSettings: React.FC = () => {
                     <Typography variant="body2" sx={{ mb: 2 }}>
                         Once you delete your account, there is no going back. All associated data will be permanently removed. Please be certain.
                     </Typography>
-                    <Button variant="contained" color="error" onClick={openDeleteDialog} sx={buttonStyles}>
-                        Delete My Account
+                    <Button variant="contained" color="error" onClick={openDeleteDialog} sx={buttonStyles} disabled={isCheckingOwnership}>
+                        {isCheckingOwnership ? <CircularProgress size={24} color="inherit" /> : 'Delete My Account'}
                     </Button>
                 </Paper>
             </Stack>
 
-            <Dialog
-                open={deleteDialogOpen}
-                onClose={closeDeleteDialog}
-                aria-labelledby="delete-account-dialog-title"
-            >
-                <DialogTitle id="delete-account-dialog-title" sx={{ textAlign: 'center', pt: 3 }}>
+
+            <Dialog open={isPictureDialogOpen} onClose={closePictureDialog} maxWidth="sm" fullWidth>
+                <DialogTitle>Edit Profile Picture</DialogTitle>
+                <DialogContent sx={{ ...(imageSrc && { position: 'relative', height: '400px', p: 0 }) }}>
+                    {!imageSrc ? (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, p: 4 }}>
+                            <Avatar src={currentUser?.photoURL || ''} sx={{ width: 120, height: 120 }} />
+                            <Button
+                                variant="contained"
+                                startIcon={<PhotoCamera />}
+                                onClick={handleUploadButtonClick}
+                            >
+                                Upload New Picture
+                            </Button>
+                        </Box>
+                    ) : (
+                        <>
+                            <Cropper
+                                image={imageSrc}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={1}
+                                onCropChange={setCrop}
+                                onZoomChange={setZoom}
+                                onCropComplete={onCropComplete}
+                                cropShape="round"
+                            />
+                            <Box sx={{ position: 'absolute', bottom: 16, left: 16, right: 16, zIndex: 10 }}>
+                                <Typography sx={{ color: 'white', textShadow: '1px 1px 2px black' }}>Zoom</Typography>
+                                <Slider
+                                    value={zoom}
+                                    min={1}
+                                    max={3}
+                                    step={0.1}
+                                    aria-labelledby="zoom-slider"
+                                    onChange={(e, zoom) => setZoom(zoom as number)}
+                                    sx={{ color: 'white' }}
+                                />
+                            </Box>
+                        </>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ p: '16px 24px' }}>
+                    {imageSrc ? (
+                        <>
+                            <Button onClick={() => setImageSrc(null)} disabled={isUploading}>Back</Button>
+                            <Button onClick={handleUploadCroppedImage} variant="contained" disabled={isUploading}>
+                                {isUploading ? <CircularProgress size={24} color="inherit" /> : 'Save Picture'}
+                            </Button>
+                        </>
+                    ) : (
+                        <Button onClick={closePictureDialog}>Close</Button>
+                    )}
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={ownershipWarningOpen} onClose={() => setOwnershipWarningOpen(false)}>
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <WarningAmberIcon color="error" />
+                    Cannot Delete Account
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText component="div">
+                        You cannot delete your account because you are the owner of the following {ownedCourts.length} facility/facilities:
+                        <Paper variant="outlined" sx={{ my: 2, p: 1, maxHeight: 150, overflowY: 'auto' }}>
+                            <List dense>
+                                {ownedCourts.map(name => (<ListItem key={name}><ListItemText primary={name} /></ListItem>))}
+                            </List>
+                        </Paper>
+                        Please transfer ownership or delete these facilities first.
+                        <br /><br />
+                        If you do not know another organizer, it is highly recommended to transfer ownership to: <strong>officialvacantcourt@gmail.com</strong>
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOwnershipWarningOpen(false)} autoFocus>OK</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={deleteDialogOpen} onClose={closeDeleteDialog}>
+                <DialogTitle sx={{ textAlign: 'center', pt: 3 }}>
                     <Stack direction="column" alignItems="center" spacing={1}>
                         <WarningAmberIcon sx={{ fontSize: '3.5rem', color: 'error.main' }} />
-                        <Typography variant="h5" component="span" sx={{ fontWeight: 'bold' }}>
-                            Are you absolutely sure?
-                        </Typography>
+                        <Typography variant="h5" component="span" sx={{ fontWeight: 'bold' }}>Are you absolutely sure?</Typography>
                     </Stack>
                 </DialogTitle>
                 <DialogContent>
@@ -270,32 +375,11 @@ const ProfileSettings: React.FC = () => {
                     <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
                         To confirm, please type <strong>DELETE</strong> in the box below.
                     </Typography>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="delete-confirmation"
-                        label="Type DELETE to confirm"
-                        type="text"
-                        fullWidth
-                        variant="outlined"
-                        value={confirmationText}
-                        onChange={(e) => setConfirmationText(e.target.value)}
-                        placeholder="DELETE"
-                        autoComplete="off"
-                    />
+                    <TextField autoFocus margin="dense" id="delete-confirmation" label="Type DELETE to confirm" type="text" fullWidth variant="outlined" value={confirmationText} onChange={(e) => setConfirmationText(e.target.value)} placeholder="DELETE" autoComplete="off"/>
                 </DialogContent>
                 <DialogActions sx={{ p: '16px 24px' }}>
-                    <Button onClick={closeDeleteDialog} variant="outlined" color="secondary">
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleDeleteAccount}
-                        variant="contained"
-                        color="error"
-                        disabled={confirmationText !== 'DELETE'}
-                    >
-                        Delete My Account
-                    </Button>
+                    <Button onClick={closeDeleteDialog} variant="outlined" color="secondary">Cancel</Button>
+                    <Button onClick={handleDeleteAccount} variant="contained" color="error" disabled={confirmationText !== 'DELETE'}>Delete My Account</Button>
                 </DialogActions>
             </Dialog>
         </>
