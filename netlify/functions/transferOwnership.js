@@ -16,10 +16,24 @@ if (admin.apps.length === 0) {
 const db = admin.firestore();
 
 exports.handler = async function(event, context) {
-  if (!context.clientContext || !context.clientContext.user) {
-    return { statusCode: 401, body: JSON.stringify({ error: 'You must be logged in to transfer ownership.' }) };
+
+  const authHeader = event.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { statusCode: 401, body: JSON.stringify({ error: 'You must be logged in to perform this action. (No token found)' }) };
   }
-  const requestingUserId = context.clientContext.user.uid;
+  const idToken = authHeader.split('Bearer ')[1];
+
+  let decodedToken;
+  try {
+    decodedToken = await admin.auth().verifyIdToken(idToken);
+  } catch (error) {
+    console.error('Invalid token:', error);
+    return { statusCode: 403, body: JSON.stringify({ error: 'Invalid or expired credentials. Please log in again.' }) };
+  }
+
+  const requestingUserId = decodedToken.uid;
+
+
 
   const { courtId, newOwnerEmail } = JSON.parse(event.body);
   if (!courtId || !newOwnerEmail) {
@@ -33,6 +47,8 @@ exports.handler = async function(event, context) {
     } catch (error) {
         if (error.code === 'auth/user-not-found') {
             return { statusCode: 404, body: JSON.stringify({ error: 'No user found with that email address.' }) };
+        } else if (error.code === 'auth/invalid-email') {
+            return { statusCode: 400, body: JSON.stringify({ error: 'Please use a valid email address.' }) }
         }
         throw error;
     }
@@ -47,7 +63,12 @@ exports.handler = async function(event, context) {
     const courtData = courtDoc.data();
 
     if (courtData.ownerId !== requestingUserId) {
+        console.error(`Authorization failed: Owner is ${courtData.ownerId}, Requester is ${requestingUserId}`);
         return { statusCode: 403, body: JSON.stringify({ error: 'You are not the owner of this court.' }) };
+    }
+    
+    if (newOwner.uid === requestingUserId) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'You cannot transfer ownership to yourself.' }) };
     }
 
     await courtRef.update({
