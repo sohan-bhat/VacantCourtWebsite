@@ -256,7 +256,7 @@ function Dashboard() {
                             <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mr: 1 }}>
                                 {isMobile ? null : <LocationOn color="success" sx={{ fontSize: '1.1rem' }} />}
                                 <Typography
-                                    fontFamily={["Poppins"]}
+                                    fontFamily={["Rubik"]}
                                     variant="body2"
                                     sx={{
                                         whiteSpace: 'nowrap',

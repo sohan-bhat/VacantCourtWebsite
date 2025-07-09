@@ -19,7 +19,9 @@ import {
     Radio,
     TextField,
     Typography,
-    FormControl
+    FormControl,
+    Stack,
+    Skeleton
 } from '@mui/material';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -33,11 +35,28 @@ import { MuiTelInput, matchIsValidTel } from 'mui-tel-input';
 import { useAuth } from '../auth/AuthContext';
 import { addNotificationRequest, getNotificationRequestForUser, removeNotificationRequest } from '../../services/notificationService';
 
+const CourtCardSkeleton = () => (
+    <Box className="court-card-skeleton" sx={{ p: 2, border: '1px solid #e0e0e0', overflow: 'visible' }}>
+        <Stack spacing={1.5}>
+            <Skeleton variant="text" width="60%" height={32}  />
+            <Skeleton variant="text" width="40%" height={20}  />
+            <Skeleton variant="text" width="80%" height={20}  />
+            
+            <Box sx={{ flexGrow: 1 }} />
+
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
+                <Skeleton variant="rectangular" width={120} height={28}  sx={{ borderRadius: '16px' }} />
+                <Skeleton variant="rectangular" width={90} height={20}  sx={{ borderRadius: '4px' }}/>
+            </Stack>
+        </Stack>
+    </Box>
+);
+
 function SingleCourtCard({ court }: { court: CourtCardSummary }) {
     const [isStale, setIsStale] = useState(false);
 
     useEffect(() => {
-        const STALE_THRESHOLD_SECONDS = 297; // 3 less than 5 minutes because of bug
+        const STALE_THRESHOLD_SECONDS = 297;
 
         const calculateStaleness = () => {
             const timestampValue = court.lastUpdatedStatus;
@@ -399,7 +418,9 @@ function CourtCard({
     return (
         <div className="court-list">
             {loading ? (
-                <div className='no-results'><CircularProgress /></div>
+                Array.from({ length: 6 }).map((_, index) => (
+                    <CourtCardSkeleton key={index} />
+                ))
             ) : (
                 displayedCourts.length === 0 ? (
                     <div className="no-results">{noResultsMessage}</div>
