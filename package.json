@@ -26,7 +26,8 @@
     "firebase": "^11.8.1",
     "firebase-admin": "^13.4.0",
     "mui-tel-input": "^9.0.1",
-    "react-router-dom": "^7.3.0"
+    "react-router-dom": "^7.3.0",
+    "vite-plugin-sitemap": "^0.8.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

@@ -1,4 +1,4 @@
-import { collection, query, where, getCountFromServer } from 'firebase/firestore';
+import { collection, query, where, getCountFromServer, getDocs } from 'firebase/firestore';
 import { db } from './config';
 import { getAuth } from 'firebase/auth';
 
@@ -38,4 +38,11 @@ export const transferCourtOwnership = async (courtId: string, newOwnerEmail: str
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to transfer ownership.');
     }
+};
+
+export const getAllCourtIds = async (): Promise<string[]> => {
+    const courtsCollection = collection(db, 'Courts');
+    const courtSnapshot = await getDocs(courtsCollection);
+    const courtIds = courtSnapshot.docs.map(doc => doc.id);
+    return courtIds;
 };
