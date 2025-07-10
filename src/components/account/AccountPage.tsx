@@ -19,13 +19,14 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import MenuIcon from '@mui/icons-material/Menu';
+import PageMeta from '../layout/PageMeta';
 
 const drawerWidth = 280;
 
 const AccountPage: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -42,11 +43,11 @@ const AccountPage: React.FC = () => {
         }
         return location.pathname === path;
     };
-    
+
     const drawerContent = (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <Toolbar sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid', borderColor: 'grey.200' }}>
-                 <img src='/ground.png' alt="Logo" style={{ height: 32 }} />
+                <img src='/ground.png' alt="Logo" style={{ height: 32 }} />
                 <Typography fontFamily={"Rubik"} variant="h6" sx={{ fontWeight: 'bold' }}>
                     Account Center
                 </Typography>
@@ -82,62 +83,68 @@ const AccountPage: React.FC = () => {
     );
 
     return (
-        <Box sx={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-            {isMobile ? (
-                <>
-                    <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1, bgcolor: 'background.paper', color: 'text.primary', borderBottom: '1px solid', borderColor: 'grey.200', boxShadow: 'none' }}>
-                        <Toolbar>
-                            <IconButton
-                                color="inherit"
-                                aria-label="open drawer"
-                                edge="start"
-                                onClick={handleDrawerToggle}
-                                sx={{ mr: 2 }}
-                            >
-                                <MenuIcon />
-                            </IconButton>
-                            <Typography fontFamily={"Rubik"}variant="h6" noWrap component="div" sx={{ fontWeight: 'bold' }}>
-                                Account Center
-                            </Typography>
-                        </Toolbar>
-                    </AppBar>
-                    <Drawer
-                        variant="temporary"
-                        open={mobileOpen}
-                        onClose={handleDrawerToggle}
-                        ModalProps={{ keepMounted: true }}
-                        sx={{
-                            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-                        }}
+        <>
+            <PageMeta
+                title="Account Settings"
+                description="Manage your VacantCourt profile. Update your display name, change your password, and manage your account details securely."
+            />
+            <Box sx={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
+                {isMobile ? (
+                    <>
+                        <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1, bgcolor: 'background.paper', color: 'text.primary', borderBottom: '1px solid', borderColor: 'grey.200', boxShadow: 'none' }}>
+                            <Toolbar>
+                                <IconButton
+                                    color="inherit"
+                                    aria-label="open drawer"
+                                    edge="start"
+                                    onClick={handleDrawerToggle}
+                                    sx={{ mr: 2 }}
+                                >
+                                    <MenuIcon />
+                                </IconButton>
+                                <Typography fontFamily={"Rubik"} variant="h6" noWrap component="div" sx={{ fontWeight: 'bold' }}>
+                                    Account Center
+                                </Typography>
+                            </Toolbar>
+                        </AppBar>
+                        <Drawer
+                            variant="temporary"
+                            open={mobileOpen}
+                            onClose={handleDrawerToggle}
+                            ModalProps={{ keepMounted: true }}
+                            sx={{
+                                '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                            }}
+                        >
+                            {drawerContent}
+                        </Drawer>
+                    </>
+                ) : (
+                    <Box
+                        component="aside"
+                        sx={{ width: drawerWidth, flexShrink: 0, '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' } }}
                     >
-                        {drawerContent}
-                    </Drawer>
-                </>
-            ) : (
-                <Box
-                    component="aside"
-                    sx={{ width: drawerWidth, flexShrink: 0, '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' } }}
-                >
-                    <Drawer variant="permanent" sx={{ '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box', borderRight: '1px solid', borderColor: 'grey.200' } }}>
-                        {drawerContent}
-                    </Drawer>
-                </Box>
-            )}
+                        <Drawer variant="permanent" sx={{ '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box', borderRight: '1px solid', borderColor: 'grey.200' } }}>
+                            {drawerContent}
+                        </Drawer>
+                    </Box>
+                )}
 
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    p: { xs: 2, sm: 3, md: 4 },
-                    overflowY: 'auto',
-                    backgroundColor: '#f4f6f8',
-                    mt: isMobile ? '64px' : '0', 
-                    height: isMobile ? 'calc(100vh - 64px)' : '100vh',
-                }}
-            >
-                <Outlet />
+                <Box
+                    component="main"
+                    sx={{
+                        flexGrow: 1,
+                        p: { xs: 2, sm: 3, md: 4 },
+                        overflowY: 'auto',
+                        backgroundColor: '#f4f6f8',
+                        mt: isMobile ? '64px' : '0',
+                        height: isMobile ? 'calc(100vh - 64px)' : '100vh',
+                    }}
+                >
+                    <Outlet />
+                </Box>
             </Box>
-        </Box>
+        </>
     );
 };
 

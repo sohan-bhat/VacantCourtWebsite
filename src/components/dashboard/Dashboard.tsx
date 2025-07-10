@@ -25,6 +25,7 @@ import LocationDisabledIcon from '@mui/icons-material/LocationDisabled';
 import LocationOn from '@mui/icons-material/LocationOn'
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import toast from 'react-hot-toast';
+import PageMeta from '../layout/PageMeta';
 
 const MAX_DISTANCE_KM = 40;
 
@@ -331,84 +332,90 @@ function Dashboard() {
     }
 
     return (
-        <div className="dashboard">
-            <div className="dashboard-header">
-                <h2>Find Available Courts Near You!</h2>
-                <div className="dashboard-header-controls">
-                    <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                    {getGeolocationControlUI()}
-                </div>
-            </div>
-
-            <FilterControls
-                filterType={filterType}
-                setFilterType={setFilterType}
-                viewMode={viewMode}
-                setViewMode={setViewMode}
-                showOnlyConfigured={showOnlyConfigured}
-                setShowOnlyConfigured={setShowOnlyConfigured}
+        <>
+            <PageMeta
+                title="Find Available Courts"
+                description="Search for tennis and other sports' courts near you and see their real-time availability."
             />
+            <div className="dashboard">
+                <div className="dashboard-header">
+                    <h2>Find Available Courts Near You!</h2>
+                    <div className="dashboard-header-controls">
+                        <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                        {getGeolocationControlUI()}
+                    </div>
+                </div>
 
-            {viewMode === 'list' ? (
-                <CourtCard
-                    courts={processedCourts}
-                    loading={loading}
-                    isProximityFilteringActive={isLocationFilteringEnabled && geolocationStatus === 'granted'}
-                    maxDistanceKm={MAX_DISTANCE_KM}
-                    currentFilterType={filterType}
-                    currentSearchTerm={searchTerm}
+                <FilterControls
+                    filterType={filterType}
+                    setFilterType={setFilterType}
+                    viewMode={viewMode}
+                    setViewMode={setViewMode}
+                    showOnlyConfigured={showOnlyConfigured}
+                    setShowOnlyConfigured={setShowOnlyConfigured}
                 />
-            ) : (
-                <CourtMap
-                    courts={processedCourts}
-                    userLocation={userLocation}
-                    isProximityFilteringActive={isLocationFilteringEnabled && geolocationStatus === 'granted'}
-                />
-            )}
 
-            <Dialog
-                open={showGeolocationDialog}
-                onClose={() => setShowGeolocationDialog(false)}
-                maxWidth="sm"
-                fullWidth
-                fullScreen={isMobile}
-                PaperProps={{ sx: { borderRadius: isMobile ? 0 : 2 } }}
-            >
-                <DialogTitle sx={{ bgcolor: '#1e3a8a', color: 'white', py: 2 }}>
-                    Find Courts Near You
-                </DialogTitle>
-                <DialogContent sx={{ p: { xs: 2, sm: 3 }, pt: { xs: '15px !important', sm: '20px !important' } }}>
-                    <Typography fontFamily={"Rubik"}variant="body1" sx={{ mb: 2 }}>
-                        Allow access to your location to see the closest courts first.
-                    </Typography>
-                    <Typography fontFamily={"Rubik"}variant="body2" color="text.secondary">
-                        This will allow us to sort available courts by their proximity to you, putting the closest options first. Your location data is used only for this purpose and is not stored on our servers.
-                    </Typography>
-                </DialogContent>
-                <DialogActions sx={{ p: { xs: 2, sm: 3 }, bgcolor: 'grey.50', flexDirection: { xs: 'column-reverse', sm: 'row' }, gap: { xs: 1, sm: 0 } }}>
-                    <Button
-                        onClick={handleDenyLocation}
-                        variant="outlined"
-                        sx={{
-                            mr: { sm: 1 }, width: { xs: '100%', sm: 'auto' }, borderColor: '#1e3a8a', color: '#1e3a8a',
-                            '&:hover': { borderColor: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.04)' }
-                        }}
-                    >
-                        No Thanks
-                    </Button>
-                    <Button
-                        onClick={handleAllowLocation}
-                        variant="contained"
-                        sx={{
-                            px: 4, width: { xs: '100%', sm: 'auto' }, bgcolor: '#28a745',
-                            '&:hover': { bgcolor: '#228d3c' }
-                        }}
-                    >
-                        Allow Location
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </div>
+                {viewMode === 'list' ? (
+                    <CourtCard
+                        courts={processedCourts}
+                        loading={loading}
+                        isProximityFilteringActive={isLocationFilteringEnabled && geolocationStatus === 'granted'}
+                        maxDistanceKm={MAX_DISTANCE_KM}
+                        currentFilterType={filterType}
+                        currentSearchTerm={searchTerm}
+                    />
+                ) : (
+                    <CourtMap
+                        courts={processedCourts}
+                        userLocation={userLocation}
+                        isProximityFilteringActive={isLocationFilteringEnabled && geolocationStatus === 'granted'}
+                    />
+                )}
+
+                <Dialog
+                    open={showGeolocationDialog}
+                    onClose={() => setShowGeolocationDialog(false)}
+                    maxWidth="sm"
+                    fullWidth
+                    fullScreen={isMobile}
+                    PaperProps={{ sx: { borderRadius: isMobile ? 0 : 2 } }}
+                >
+                    <DialogTitle sx={{ bgcolor: '#1e3a8a', color: 'white', py: 2 }}>
+                        Find Courts Near You
+                    </DialogTitle>
+                    <DialogContent sx={{ p: { xs: 2, sm: 3 }, pt: { xs: '15px !important', sm: '20px !important' } }}>
+                        <Typography fontFamily={"Rubik"} variant="body1" sx={{ mb: 2 }}>
+                            Allow access to your location to see the closest courts first.
+                        </Typography>
+                        <Typography fontFamily={"Rubik"} variant="body2" color="text.secondary">
+                            This will allow us to sort available courts by their proximity to you, putting the closest options first. Your location data is used only for this purpose and is not stored on our servers.
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions sx={{ p: { xs: 2, sm: 3 }, bgcolor: 'grey.50', flexDirection: { xs: 'column-reverse', sm: 'row' }, gap: { xs: 1, sm: 0 } }}>
+                        <Button
+                            onClick={handleDenyLocation}
+                            variant="outlined"
+                            sx={{
+                                mr: { sm: 1 }, width: { xs: '100%', sm: 'auto' }, borderColor: '#1e3a8a', color: '#1e3a8a',
+                                '&:hover': { borderColor: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.04)' }
+                            }}
+                        >
+                            No Thanks
+                        </Button>
+                        <Button
+                            onClick={handleAllowLocation}
+                            variant="contained"
+                            sx={{
+                                px: 4, width: { xs: '100%', sm: 'auto' }, bgcolor: '#28a745',
+                                '&:hover': { bgcolor: '#228d3c' }
+                            }}
+                        >
+                            Allow Location
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </div>
+        </>
     );
 }
 

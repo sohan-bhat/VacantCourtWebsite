@@ -9,6 +9,7 @@ import { useAuth } from './AuthContext';
 import { FcGoogle } from 'react-icons/fc';
 import { IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PageMeta from '../layout/PageMeta';
 
 const AuthPage: React.FC = () => {
     const [view, setView] = useState<'login' | 'signup' | 'reset'>('login');
@@ -153,13 +154,13 @@ const AuthPage: React.FC = () => {
             </div>
         );
     }
-    
+
     if (view === 'reset') {
         return (
             <div className="auth-page-container">
                 <div className="auth-form-wrapper">
                     <Link to="/" className="auth-back-link" aria-label="Back to Dashboard">
-                        <IconButton component="span" sx={{ color: '#555', '&:hover': { color: '#1e3a8a'} }}>
+                        <IconButton component="span" sx={{ color: '#555', '&:hover': { color: '#1e3a8a' } }}>
                             <ArrowBackIcon />
                         </IconButton>
                     </Link>
@@ -199,7 +200,7 @@ const AuthPage: React.FC = () => {
                         </Form.Submit>
                     </Form.Root>
 
-                    <p className="auth-toggle-prompt" style={{fontFamily: 'Rubik'}}>
+                    <p className="auth-toggle-prompt" style={{ fontFamily: 'Rubik' }}>
                         Remembered your password?
                         <button onClick={() => { setView('login'); resetFormState(); }} className="auth-toggle-button" disabled={isLoading}>
                             Back to Login
@@ -211,121 +212,127 @@ const AuthPage: React.FC = () => {
     }
 
     return (
-        <div className="auth-page-container">
-            <div className="auth-form-wrapper">
-                <Link to="/" className="auth-back-link" aria-label="Back to Dashboard">
-                    <IconButton component="span" sx={{ color: '#555', '&:hover': { color: '#1e3a8a'} }}>
-                        <ArrowBackIcon />
+        <>
+            <PageMeta
+                title="Login or Sign Up"
+                description="Log in to your VacantCourt account or create a free account to receive real-time court availability notifications and manage your preferences."
+            />
+            <div className="auth-page-container">
+                <div className="auth-form-wrapper">
+                    <Link to="/" className="auth-back-link" aria-label="Back to Dashboard">
+                        <IconButton component="span" sx={{ color: '#555', '&:hover': { color: '#1e3a8a' } }}>
+                            <ArrowBackIcon />
+                        </IconButton>
+                    </Link>
+
+                    <h2>{view === 'login' ? 'Login' : 'Sign Up'}</h2>
+
+                    <IconButton
+                        type="button"
+                        onClick={handleGoogleSignIn}
+                        className="google-signin-button auth-button-social"
+                        disabled={isLoading}
+                        sx={{
+                            border: '1px solid rgba(0, 0, 0, 0.23)',
+                            borderRadius: '0.75rem',
+                        }}
+                    >
+                        <FcGoogle size={30} />
                     </IconButton>
-                </Link>
 
-                <h2>{view === 'login' ? 'Login' : 'Sign Up'}</h2>
+                    <div className="auth-divider">
+                        <span>OR</span>
+                    </div>
 
-                <IconButton
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    className="google-signin-button auth-button-social"
-                    disabled={isLoading}
-                    sx={{
-                        border: '1px solid rgba(0, 0, 0, 0.23)',
-                        borderRadius: '0.75rem',
-                    }}
-                >
-                    <FcGoogle size={30} />
-                </IconButton>
+                    <Form.Root onSubmit={handleSubmit} className="auth-form">
+                        {formError && <div className="form-error-message">{formError}</div>}
 
-                <div className="auth-divider">
-                    <span>OR</span>
-                </div>
-
-                <Form.Root onSubmit={handleSubmit} className="auth-form">
-                    {formError && <div className="form-error-message">{formError}</div>}
-
-                    <Form.Field name="email" className="form-field">
-                        <div className="form-label-container">
-                            <Form.Label className="form-label">Email</Form.Label>
-                        </div>
-                        <Form.Control asChild>
-                            <input
-                                className="form-input"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                disabled={isLoading}
-                                autoComplete='off'
-                            />
-                        </Form.Control>
-                        <Form.Message className="form-message" match="valueMissing">
-                            Please enter your email
-                        </Form.Message>
-                        <Form.Message className="form-message" match="typeMismatch">
-                            Please provide a valid email
-                        </Form.Message>
-                    </Form.Field>
-
-                    <Form.Field name="password" className="form-field">
-                        <div className="form-label-container">
-                            <Form.Label className="form-label">Password</Form.Label>
-                            {view === 'login' && (
-                                <button type="button" onClick={() => { setView('reset'); resetFormState(); }} className="auth-toggle-button" style={{ fontSize: '0.8em', fontWeight: 400 }}>
-                                    Forgot Password?
-                                </button>
-                            )}
-                        </div>
-                        <Form.Control asChild>
-                            <input
-                                className="form-input"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                disabled={isLoading}
-                                autoComplete='off'
-                            />
-                        </Form.Control>
-                        <Form.Message className="form-message" match="valueMissing">
-                            Please enter your password
-                        </Form.Message>
-                    </Form.Field>
-
-                    {view === 'signup' && (
-                        <Form.Field name="confirmPassword" className="form-field">
+                        <Form.Field name="email" className="form-field">
                             <div className="form-label-container">
-                                <Form.Label className="form-label">Confirm Password</Form.Label>
+                                <Form.Label className="form-label">Email</Form.Label>
                             </div>
                             <Form.Control asChild>
                                 <input
                                     className="form-input"
-                                    type="password"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     required
                                     disabled={isLoading}
                                     autoComplete='off'
                                 />
                             </Form.Control>
                             <Form.Message className="form-message" match="valueMissing">
-                                Please confirm your password
+                                Please enter your email
+                            </Form.Message>
+                            <Form.Message className="form-message" match="typeMismatch">
+                                Please provide a valid email
                             </Form.Message>
                         </Form.Field>
-                    )}
 
-                    <Form.Submit asChild>
-                        <button className="auth-submit-button" disabled={isLoading}>
-                            {isLoading ? 'Processing...' : (view === 'login' ? 'Login' : 'Sign Up')}
+                        <Form.Field name="password" className="form-field">
+                            <div className="form-label-container">
+                                <Form.Label className="form-label">Password</Form.Label>
+                                {view === 'login' && (
+                                    <button type="button" onClick={() => { setView('reset'); resetFormState(); }} className="auth-toggle-button" style={{ fontSize: '0.8em', fontWeight: 400 }}>
+                                        Forgot Password?
+                                    </button>
+                                )}
+                            </div>
+                            <Form.Control asChild>
+                                <input
+                                    className="form-input"
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    disabled={isLoading}
+                                    autoComplete='off'
+                                />
+                            </Form.Control>
+                            <Form.Message className="form-message" match="valueMissing">
+                                Please enter your password
+                            </Form.Message>
+                        </Form.Field>
+
+                        {view === 'signup' && (
+                            <Form.Field name="confirmPassword" className="form-field">
+                                <div className="form-label-container">
+                                    <Form.Label className="form-label">Confirm Password</Form.Label>
+                                </div>
+                                <Form.Control asChild>
+                                    <input
+                                        className="form-input"
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                        disabled={isLoading}
+                                        autoComplete='off'
+                                    />
+                                </Form.Control>
+                                <Form.Message className="form-message" match="valueMissing">
+                                    Please confirm your password
+                                </Form.Message>
+                            </Form.Field>
+                        )}
+
+                        <Form.Submit asChild>
+                            <button className="auth-submit-button" disabled={isLoading}>
+                                {isLoading ? 'Processing...' : (view === 'login' ? 'Login' : 'Sign Up')}
+                            </button>
+                        </Form.Submit>
+                    </Form.Root>
+
+                    <p className="auth-toggle-prompt" style={{ fontFamily: 'Rubik' }}>
+                        {view === 'login' ? "Don't have an account?" : 'Already have an account?'}
+                        <button onClick={() => { setView(view === 'login' ? 'signup' : 'login'); resetFormState(); }} className="auth-toggle-button" disabled={isLoading}>
+                            {view === 'login' ? 'Sign Up' : 'Login'}
                         </button>
-                    </Form.Submit>
-                </Form.Root>
-
-                <p className="auth-toggle-prompt" style={{fontFamily: 'Rubik'}}>
-                    {view === 'login' ? "Don't have an account?" : 'Already have an account?'}
-                    <button onClick={() => { setView(view === 'login' ? 'signup' : 'login'); resetFormState(); }} className="auth-toggle-button" disabled={isLoading}>
-                        {view === 'login' ? 'Sign Up' : 'Login'}
-                    </button>
-                </p>
+                    </p>
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 
