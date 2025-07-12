@@ -13,12 +13,10 @@ dotenv.config();
 const getCourtRoutesForSitemap = async () => {
     if (admin.apps.length === 0) {
         const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
-
         if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !privateKey) {
             console.warn('Firebase admin credentials not found. Skipping dynamic route generation for sitemap.');
             return [];
         }
-
         admin.initializeApp({
             credential: admin.credential.cert({
                 projectId: process.env.FIREBASE_PROJECT_ID,
@@ -45,20 +43,34 @@ const getCourtRoutesForSitemap = async () => {
 };
 
 export default defineConfig(async () => {
+    
+
+    const staticRoutes = [
+        '/',
+        '/privacy',
+        '/tos',
+    ];
+
     const dynamicCourtRoutes = await getCourtRoutesForSitemap();
+
+    const allRoutes = [...staticRoutes, ...dynamicCourtRoutes];
 
     return {
         plugins: [
             react(),
             sitemap({
                 hostname: 'https://vacantcourt.netlify.app',
-                dynamicRoutes: dynamicCourtRoutes,
+                
+                dynamicRoutes: allRoutes,
+                
                 exclude: [
                     '/auth', 
                     '/account', 
                     '/account/profile', 
-                    '/account/subscriptions'
+                    '/account/subscriptions',
+                    '/page404',
                 ],
+                
                 robots: [{ userAgent: '*', allow: '/' }],
             }),
         ],
