@@ -7,7 +7,11 @@ const MEASUREMENT_ID = "G-KZSFL2LX09";
  */
 export const initGA = () => {
     if (MEASUREMENT_ID) {
-        ReactGA.initialize(MEASUREMENT_ID);
+        ReactGA.initialize(MEASUREMENT_ID, {
+            gaOptions: {
+                cookieDomain: 'auto' 
+            }
+        });
         console.log("Google Analytics Initialized");
     } else {
         console.error("GA Measurement ID is not set.");
