@@ -188,7 +188,7 @@ function NotificationButton({ court }: NotificationButtonProps) {
         } else if (state === 'idle') {
             setConfirmModalOpen(true);
         } else if (state === 'subscribed') {
-            handleUnsubscribe();    
+            handleUnsubscribe();
         }
     };
 

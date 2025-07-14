@@ -92,6 +92,7 @@ function Header() {
                                     color="primary"
                                     onClick={handleOpenAddCourt}
                                     startIcon={<AddIcon />}
+                                    sx={{fontFamily: ['Rubik']}}
                                 >
                                     Add Court
                                 </Button>
@@ -103,7 +104,7 @@ function Header() {
                                     color="primary"
                                     onClick={() => navigate('/auth')}
                                     startIcon={<LoginIcon />}
-                                    sx={{ textTransform: 'none' }}
+                                    sx={{ textTransform: 'none', fontFamily: 'Rubik' }}
                                 >
                                     Login / Sign Up
                                 </Button>
