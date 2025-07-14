@@ -9,7 +9,7 @@ export const initGA = () => {
     if (MEASUREMENT_ID) {
         ReactGA.initialize(MEASUREMENT_ID, {
             gaOptions: {
-                cookieDomain: 'auto' 
+                cookieDomain: 'auto'
             }
         });
         console.log("Google Analytics Initialized");
@@ -34,11 +34,13 @@ export const trackUserSignUp = (method: string) => {
  * Tracks a custom event when a user subscribes to a court notification.
  * @param courtId - The ID of the court.
  * @param courtName - The name of the court.
+ * @param userId - The ID of the user subscribing.
+ * @param userEmail - The email of the userSubscribing.
  */
-export const trackNotificationSubscribed = (courtId: string, courtName: string) => {
+export const trackNotificationSubscribed = (courtId: string, courtName: string, userId: string, userEmail: string) => {
     ReactGA.event({
         category: 'Engagement',
         action: 'Notification Subscribed',
-        label: `${courtName} (${courtId})`,
+        label: `${courtName} (${courtId}): ${userId} (${userEmail})`,
     });
 };

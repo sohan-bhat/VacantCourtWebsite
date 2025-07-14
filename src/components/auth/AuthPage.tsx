@@ -10,6 +10,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageMeta from '../layout/PageMeta';
+import { trackUserSignUp } from '../../services/analyticsService';
 
 const AuthPage: React.FC = () => {
     const [view, setView] = useState<'login' | 'signup' | 'reset'>('login');
@@ -44,6 +45,7 @@ const AuthPage: React.FC = () => {
         try {
             await signInWithGoogle();
             toast.success('Successfully signed in with Google!');
+            trackUserSignUp('google')
             navigate('/');
         } catch (error: any) {
             setIsLoading(false);
@@ -108,6 +110,7 @@ const AuthPage: React.FC = () => {
             try {
                 await signUpWithEmail(email, password);
                 toast.success('Account created successfully! Welcome!');
+                trackUserSignUp('email')
                 navigate('/');
             } catch (error) {
                 handleAuthError(error);

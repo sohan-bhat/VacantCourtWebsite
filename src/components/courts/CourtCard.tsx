@@ -34,6 +34,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { MuiTelInput, matchIsValidTel } from 'mui-tel-input';
 import { useAuth } from '../auth/AuthContext';
 import { addNotificationRequest, getNotificationRequestForUser, removeNotificationRequest } from '../../services/notificationService';
+import { trackNotificationSubscribed } from '../../services/analyticsService';
 
 const CourtCardSkeleton = () => (
     <Box className="court-card-skeleton" sx={{ p: 2, border: '1px solid #e0e0e0', overflow: 'visible' }}>
@@ -187,7 +188,7 @@ function NotificationButton({ court }: NotificationButtonProps) {
         } else if (state === 'idle') {
             setConfirmModalOpen(true);
         } else if (state === 'subscribed') {
-            handleUnsubscribe();
+            handleUnsubscribe();    
         }
     };
 
@@ -209,6 +210,7 @@ function NotificationButton({ court }: NotificationButtonProps) {
                 setRequestId(newRequestId);
                 setState('subscribed');
                 toast.success(`You'll be notified for ${court.name}!`);
+                trackNotificationSubscribed(court.id, court.name, currentUser.uid, currentUser.email)
             } catch {
                 setState('error');
                 toast.error('Could not set notification. Please try again.');
