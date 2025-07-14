@@ -1,6 +1,6 @@
 import ReactGA from 'react-ga4';
 
-const MEASUREMENT_ID = "G-XXXXXXXXXX"; 
+const MEASUREMENT_ID = "G-KZSFL2LX09"; 
 
 /**
  * Initializes Google Analytics. Should be called once when the app starts.
