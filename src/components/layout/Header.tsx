@@ -1,5 +1,5 @@
 import { useState, MouseEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AddCourt from '../courts/AddCourt';
 import {
     Button,
@@ -33,6 +33,7 @@ function Header() {
     const [openAddCourt, setOpenAddCourt] = useState(false);
     const { currentUser, logout, isLoading: authIsLoading } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const menuOpen = Boolean(anchorEl);
@@ -40,7 +41,7 @@ function Header() {
     const handleOpenAddCourt = () => {
         if (!currentUser) {
             toast.error("Please log in to add a court.");
-            navigate('/auth');
+            navigate('/auth', { state: { from: location } });
         } else {
             setOpenAddCourt(true);
         }
@@ -64,7 +65,7 @@ function Header() {
         try {
             await logout();
             toast.success("Logged out successfully");
-            navigate('/auth');
+            navigate('/auth', { state: { from: location } });
         } catch (error) {
             toast.error('Failed to log out, please try again');
             console.error("Logout error:", error);
@@ -74,7 +75,7 @@ function Header() {
     return (
         <header className="app-header">
             <div className="header-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                <nav className='main-nav' style={{position: 'relative', top: '3px'}}>
+                <nav className='main-nav' style={{ position: 'relative', top: '3px' }}>
                     <Link to="/dashboard" className="logo-link">
                         <img src='/ground.png' alt="Vacant Court Logo" className="header-logo-img" />
                         <span className="header-logo-text">Vacant Court</span>
@@ -92,7 +93,7 @@ function Header() {
                                     color="primary"
                                     onClick={handleOpenAddCourt}
                                     startIcon={<AddIcon />}
-                                    sx={{fontFamily: ['Rubik']}}
+                                    sx={{ fontFamily: ['Rubik'] }}
                                 >
                                     Add Court
                                 </Button>
@@ -102,7 +103,7 @@ function Header() {
                                 <Button
                                     variant="contained"
                                     color="primary"
-                                    onClick={() => navigate('/auth')}
+                                    onClick={() => navigate('/auth', { state: { from: location } })}
                                     startIcon={<LoginIcon />}
                                     sx={{ textTransform: 'none', fontFamily: 'Rubik' }}
                                 >
@@ -112,7 +113,7 @@ function Header() {
 
                             {currentUser ? (
                                 <Tooltip title="Account" arrow>
-                                     <Box
+                                    <Box
                                         onClick={handleMenuOpen}
                                         aria-controls={menuOpen ? 'account-menu' : undefined}
                                         aria-haspopup="true"
@@ -156,10 +157,10 @@ function Header() {
                                             alignItems: 'flex-start',
                                             color: 'white'
                                         }}>
-                                            <Typography fontFamily={"Rubik"}sx={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.2 }}>
+                                            <Typography fontFamily={"Rubik"} sx={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.2 }}>
                                                 {currentUser.displayName || 'User'}
                                             </Typography>
-                                            <Typography fontFamily={"Rubik"}sx={{ fontSize: '0.75rem', opacity: 0.8, lineHeight: 1.2, marginRight: '5px' }}>
+                                            <Typography fontFamily={"Rubik"} sx={{ fontSize: '0.75rem', opacity: 0.8, lineHeight: 1.2, marginRight: '5px' }}>
                                                 {currentUser.email}
                                             </Typography>
                                         </Box>
@@ -188,22 +189,22 @@ function Header() {
                             >
                                 <MenuItem component={Link} to="/about" onClick={handleMenuClose}>
                                     <ListItemIcon><InfoIcon fontSize="small" /></ListItemIcon>
-                                    <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>About</ListItemText>
+                                    <ListItemText sx={{ fontFamily: 'Rubik' }} disableTypography>About</ListItemText>
                                 </MenuItem>
                                 <MenuItem component={Link} to="/contact" onClick={handleMenuClose}>
                                     <ListItemIcon><ContactMailIcon fontSize="small" /></ListItemIcon>
-                                    <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>Contact</ListItemText>
+                                    <ListItemText sx={{ fontFamily: 'Rubik' }} disableTypography>Contact</ListItemText>
                                 </MenuItem>
 
                                 <Divider sx={{ my: 0.5 }} />
 
                                 <MenuItem component={Link} to="/privacy" onClick={handleMenuClose}>
                                     <ListItemIcon><PrivacyTipIcon fontSize="small" /></ListItemIcon>
-                                    <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>Privacy Policy</ListItemText>
+                                    <ListItemText sx={{ fontFamily: 'Rubik' }} disableTypography>Privacy Policy</ListItemText>
                                 </MenuItem>
                                 <MenuItem component={Link} to="/tos" onClick={handleMenuClose}>
                                     <ListItemIcon><GavelIcon fontSize="small" /></ListItemIcon>
-                                    <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>Terms of Service</ListItemText>
+                                    <ListItemText sx={{ fontFamily: 'Rubik' }} disableTypography>Terms of Service</ListItemText>
                                 </MenuItem>
 
                                 {currentUser && <Divider sx={{ my: 0.5 }} />}
@@ -211,13 +212,13 @@ function Header() {
                                 {currentUser && (
                                     <MenuItem onClick={handleSettings}>
                                         <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
-                                        <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>Account Settings</ListItemText>
+                                        <ListItemText sx={{ fontFamily: 'Rubik' }} disableTypography>Account Settings</ListItemText>
                                     </MenuItem>
                                 )}
                                 {currentUser && (
                                     <MenuItem onClick={handleLogout}>
                                         <ListItemIcon><ExitToAppIcon fontSize="small" /></ListItemIcon>
-                                        <ListItemText sx={{fontFamily: 'Rubik'}} disableTypography>Log Out</ListItemText>
+                                        <ListItemText sx={{ fontFamily: 'Rubik' }} disableTypography>Log Out</ListItemText>
                                     </MenuItem>
                                 )}
                             </Menu>

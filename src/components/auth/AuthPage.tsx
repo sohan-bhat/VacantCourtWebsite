@@ -1,5 +1,5 @@
 import React, { useState, FormEvent, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import * as Form from '@radix-ui/react-form';
 import toast from 'react-hot-toast';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -15,6 +15,8 @@ import { trackUserSignUp } from '../../services/analyticsService';
 const AuthPage: React.FC = () => {
     const [view, setView] = useState<'login' | 'signup' | 'reset'>('login');
     const navigate = useNavigate();
+    const location = useLocation();
+    const fromPath = location.state?.from?.pathname || '/';
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -162,7 +164,7 @@ const AuthPage: React.FC = () => {
         return (
             <div className="auth-page-container">
                 <div className="auth-form-wrapper">
-                    <Link to="/" className="auth-back-link" aria-label="Back to Dashboard">
+                    <Link to={fromPath} className="auth-back-link" aria-label="Back to Dashboard">
                         <IconButton component="span" sx={{ color: '#555', '&:hover': { color: '#1e3a8a' } }}>
                             <ArrowBackIcon />
                         </IconButton>
@@ -222,7 +224,7 @@ const AuthPage: React.FC = () => {
             />
             <div className="auth-page-container">
                 <div className="auth-form-wrapper">
-                    <Link to="/" className="auth-back-link" aria-label="Back to Dashboard">
+                    <Link to={fromPath} className="auth-back-link" aria-label="Back to Dashboard">
                         <IconButton component="span" sx={{ color: '#555', '&:hover': { color: '#1e3a8a' } }}>
                             <ArrowBackIcon />
                         </IconButton>

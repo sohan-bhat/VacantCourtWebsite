@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import '../../styles/courts/CourtCard.css';
 import { CourtCardSummary } from '../../data/courtData';
 import {
@@ -39,15 +39,15 @@ import { trackNotificationSubscribed } from '../../services/analyticsService';
 const CourtCardSkeleton = () => (
     <Box className="court-card-skeleton" sx={{ p: 2, border: '1px solid #e0e0e0', overflow: 'visible' }}>
         <Stack spacing={1.5}>
-            <Skeleton variant="text" width="60%" height={32}  />
-            <Skeleton variant="text" width="40%" height={20}  />
-            <Skeleton variant="text" width="80%" height={20}  />
-            
+            <Skeleton variant="text" width="60%" height={32} />
+            <Skeleton variant="text" width="40%" height={20} />
+            <Skeleton variant="text" width="80%" height={20} />
+
             <Box sx={{ flexGrow: 1 }} />
 
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
-                <Skeleton variant="rectangular" width={120} height={28}  sx={{ borderRadius: '16px' }} />
-                <Skeleton variant="rectangular" width={90} height={20}  sx={{ borderRadius: '4px' }}/>
+                <Skeleton variant="rectangular" width={120} height={28} sx={{ borderRadius: '16px' }} />
+                <Skeleton variant="rectangular" width={90} height={20} sx={{ borderRadius: '4px' }} />
             </Stack>
         </Stack>
     </Box>
@@ -110,7 +110,7 @@ function SingleCourtCard({ court }: { court: CourtCardSummary }) {
                 <p className="court-location" style={{ fontFamily: 'Rubik', opacity: court.isComplexConfigured ? 1 : 0.7 }}>{court.location}</p>
 
                 <Box className="availability-indicator" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                    
+
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         {!court.isComplexConfigured ? (
                             <span className={`availability-status unconfigured`}>Not Configured</span>
@@ -146,6 +146,7 @@ interface NotificationButtonProps {
 function NotificationButton({ court }: NotificationButtonProps) {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     type NotificationState = 'idle' | 'loading' | 'subscribed' | 'error';
     const [state, setState] = useState<NotificationState>('loading');
@@ -291,7 +292,7 @@ function NotificationButton({ court }: NotificationButtonProps) {
                                     <FormControlLabel value="email" control={<Radio />} label={
                                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                             <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                                            <Typography fontFamily={"Rubik"}variant="body1" sx={{ fontWeight: 500 }}>Email Notification</Typography>
+                                            <Typography fontFamily={"Rubik"} variant="body1" sx={{ fontWeight: 500 }}>Email Notification</Typography>
                                         </Box>
                                     } />
                                     <TextField
@@ -324,7 +325,7 @@ function NotificationButton({ court }: NotificationButtonProps) {
                                                 label={
                                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                         <SmsIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                                                        <Typography fontFamily={"Rubik"}variant="body1" sx={{ fontWeight: 500 }}>SMS Notification</Typography>
+                                                        <Typography fontFamily={"Rubik"} variant="body1" sx={{ fontWeight: 500 }}>SMS Notification</Typography>
                                                     </Box>
                                                 }
                                             />
@@ -368,7 +369,7 @@ function NotificationButton({ court }: NotificationButtonProps) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setAuthModalOpen(false)}>Cancel</Button>
-                    <Button onClick={() => navigate('/auth')} color="primary" autoFocus>Sign Up / Login</Button>
+                    <Button onClick={() => navigate('/auth', { state: { from: location } })} color="primary" autoFocus>Sign Up / Login</Button>
                 </DialogActions>
             </Dialog>
         </>

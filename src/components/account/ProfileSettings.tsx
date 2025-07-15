@@ -136,7 +136,7 @@ const ProfileSettings: React.FC = () => {
         if (!currentUser) { toast.error("No user is signed in."); return; }
         try {
             closeDeleteDialog(); await deleteCurrentUserAccount();
-            toast.success("Account deleted successfully."); navigate('/auth');
+            toast.success("Account deleted successfully."); navigate('/auth', { state: { from: '/dashboard' } });
         } catch (error: any) {
             if (error.code === 'auth/requires-recent-login') { toast.error("This operation is sensitive and requires recent authentication. Please log out and log back in to delete your account."); } else { toast.error("Failed to delete account. Please try again."); }
         }

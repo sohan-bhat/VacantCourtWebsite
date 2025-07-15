@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Container, Typography, Stack, Paper, createTheme, ThemeProvider, AppBar, Toolbar, useMediaQuery, CircularProgress } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import SportsTennisIcon from '@mui/icons-material/SportsTennis';
@@ -12,7 +12,7 @@ import MyLocationIcon from '@mui/icons-material/MyLocation';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import { IconButton } from '@mui/material';
-import { Fade } from "react-awesome-reveal";
+import { Fade, Flip } from "react-awesome-reveal";
 import { useAuth } from '../auth/AuthContext';
 import PageMeta from '../layout/PageMeta';
 
@@ -23,6 +23,7 @@ const splashTheme = createTheme({
 
 const FloatingHeader: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const isMobile = useMediaQuery(splashTheme.breakpoints.down('sm'));
 
     const { currentUser, isLoading } = useAuth();
@@ -58,7 +59,7 @@ const FloatingHeader: React.FC = () => {
                     <Button variant="outlined" color="primary" size="small" onClick={() => navigate('/dashboard')} startIcon={<GridViewIcon />} sx={{ borderRadius: '999px', textTransform: 'none', display: { xs: 'none', sm: 'inline-flex' } }}>
                         Dashboard
                     </Button>
-                    <Button variant="contained" color="primary" size="small" onClick={() => navigate('/auth')} startIcon={<LoginIcon />} sx={{ borderRadius: '999px', textTransform: 'none' }}>
+                    <Button variant="contained" color="primary" size="small" onClick={() => navigate('/auth', { state: { from: location } })} startIcon={<LoginIcon />} sx={{ borderRadius: '999px', textTransform: 'none' }}>
                         {isMobile ? 'Login' : 'Login / Sign Up'}
                     </Button>
                 </Stack>
@@ -89,7 +90,7 @@ const SplashPage: React.FC = () => {
         {
             icon: <HelpOutlineIcon color="secondary" sx={{ fontSize: { xs: 32, md: 40 } }} />,
             question: "Tired of guessing?",
-            answer: "Stop wasting time and gas driving to courts that might be full."
+            answer: "Stop wasting time and energy going to courts that might be full."
         },
         {
             icon: <AccessTimeIcon color="secondary" sx={{ fontSize: { xs: 32, md: 40 } }} />,
@@ -125,28 +126,92 @@ const SplashPage: React.FC = () => {
                             </Button>
                         </Fade>
 
-                        <Fade direction="up" triggerOnce delay={500}>
-                            <Box sx={{ mt: { xs: 8, md: 10 }, borderTop: '1px solid', borderColor: 'grey.200', pt: { xs: 6, md: 8 } }}>
-                                <Stack
-                                    direction={{ xs: 'column', md: 'row' }}
-                                    spacing={{ xs: 5, md: 4 }}
-                                    justifyContent="space-around"
-                                    alignItems="center"
-                                >
-                                    {whyData.map(item => (
-                                        <Box key={item.question} sx={{ textAlign: 'center', maxWidth: '320px' }}>
-                                            {item.icon}
-                                            <Typography variant="h6" sx={{ mt: 1.5, mb: 0.5, fontWeight: 'bold' }}>
-                                                {item.question}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {item.answer}
-                                            </Typography>
-                                        </Box>
-                                    ))}
-                                </Stack>
-                            </Box>
-                        </Fade>
+                        {isMobile ?
+                            <>
+                                <Fade direction="left" triggerOnce delay={isMobile ? 0 : 800}>
+                                    <Paper
+                                        elevation={6}
+                                        sx={{
+                                            borderRadius: '16px',
+                                            overflow: 'hidden',
+                                            borderTop: '1px solid',
+                                            borderColor: 'grey.200',
+                                            mt: { xs: 6, md: 8 },
+                                            boxShadow: '0 16px 40px -15px rgba(0,0,0,0.2)',
+                                            border: '1px solid rgba(0,0,0,0.05)',
+                                            position: 'relative',
+                                        }}>
+                                        <img src="/assets/hardware.png" alt="VacantCourt hardware sensor" style={{ width: '100%', height: 'auto', display: 'block', aspectRatio: '20/9', objectFit: 'cover' }} />
+                                    </Paper>
+                                </Fade>
+                                <Fade direction="up" triggerOnce delay={500}>
+                                    <Box sx={{ mt: { xs: 8, md: 10 }, borderTop: '1px solid', borderColor: 'grey.200', pt: { xs: 6, md: 8 } }}>
+                                        <Stack
+                                            direction={{ xs: 'column', md: 'row' }}
+                                            spacing={{ xs: 5, md: 4 }}
+                                            justifyContent="space-around"
+                                            alignItems="center"
+                                        >
+                                            {whyData.map(item => (
+                                                <Box key={item.question} sx={{ textAlign: 'center', maxWidth: '320px' }}>
+                                                    {item.icon}
+                                                    <Typography variant="h6" sx={{ mt: 1.5, mb: 0.5, fontWeight: 'bold' }}>
+                                                        {item.question}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        {item.answer}
+                                                    </Typography>
+                                                </Box>
+                                            ))}
+                                        </Stack>
+                                    </Box>
+                                </Fade>
+                            </>
+                            :
+                            <>
+                                <Fade direction="up" triggerOnce delay={500}>
+                                    <Box sx={{ mt: { xs: 8, md: 10 }, borderTop: '1px solid', borderColor: 'grey.200', pt: { xs: 6, md: 8 } }}>
+                                        <Stack
+                                            direction={{ xs: 'column', md: 'row' }}
+                                            spacing={{ xs: 5, md: 4 }}
+                                            justifyContent="space-around"
+                                            alignItems="center"
+                                        >
+                                            {whyData.map(item => (
+                                                <Box key={item.question} sx={{ textAlign: 'center', maxWidth: '320px' }}>
+                                                    {item.icon}
+                                                    <Typography variant="h6" sx={{ mt: 1.5, mb: 0.5, fontWeight: 'bold' }}>
+                                                        {item.question}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        {item.answer}
+                                                    </Typography>
+                                                </Box>
+                                            ))}
+                                        </Stack>
+                                    </Box>
+                                </Fade>
+
+                                <Fade direction="left" triggerOnce delay={isMobile ? 0 : 800}>
+                                    <Paper
+                                        elevation={6}
+                                        sx={{
+                                            borderRadius: '16px',
+                                            overflow: 'hidden',
+                                            borderTop: '1px solid',
+                                            borderColor: 'grey.200',
+                                            mt: { xs: 6, md: 8 },
+                                            boxShadow: '0 16px 40px -15px rgba(0,0,0,0.2)',
+                                            border: '1px solid rgba(0,0,0,0.05)',
+                                            position: 'relative',
+                                        }}>
+                                        <img src="/assets/hardware.png" alt="VacantCourt hardware sensor" style={{ width: '100%', height: 'auto', display: 'block', aspectRatio: '20/9', objectFit: 'cover' }} />
+                                    </Paper>
+                                </Fade>
+                            </>
+                        }
+
+
                     </Container>
                 </Box>
 
@@ -161,7 +226,6 @@ const SplashPage: React.FC = () => {
                                     <Fade direction="right" triggerOnce><Paper elevation={4} sx={{ p: { xs: 3, md: 4 }, borderRadius: '16px', textAlign: 'center', width: '100%', maxWidth: '400px' }}><MemoryIcon sx={{ fontSize: { xs: 50, md: 60 }, color: 'secondary.main', mb: 2 }} /><Typography variant="h6" sx={{ fontWeight: 'bold' }}>The VC-Sensor 1.0</Typography><Typography variant="body2" color="text.secondary">A low-power, non-intrusive device installed at partner facilities provides ground-truth data.</Typography></Paper></Fade>
                                 </Box>
                             </Stack>
-                            <Fade direction="up" triggerOnce delay={isMobile ? 0 : 200}><Paper elevation={6} sx={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 16px 40px -15px rgba(0,0,0,0.2)', border: '1px solid rgba(0,0,0,0.05)', position: 'relative', '&::before': { content: '""', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '16px', border: '2px solid rgba(13, 148, 136, 0.5)', animation: 'pulse 5s infinite ease-in-out' }, '@keyframes pulse': { '0%': { transform: 'scale(0.99)', opacity: 0.6 }, '50%': { transform: 'scale(1.005)', opacity: 1 }, '100%': { transform: 'scale(0.99)', opacity: 0.6 } } }}><img src="/assets/hardware.png" alt="VacantCourt hardware sensor" style={{ width: '100%', height: 'auto', display: 'block', aspectRatio: '20/9', objectFit: 'cover' }} /></Paper></Fade>
                         </Stack>
                     </Container>
                 </Box>
