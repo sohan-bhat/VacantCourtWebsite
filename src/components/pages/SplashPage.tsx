@@ -73,12 +73,9 @@ const SplashPage: React.FC = () => {
                                     direction={{ xs: 'column', md: 'row' }}
                                     spacing={{ xs: 5, md: 4 }}
                                     justifyContent="space-around"
-                                    // This is the key fix: It centers the items horizontally on mobile (when direction is 'column')
-                                    // and vertically on desktop (when direction is 'row').
                                     alignItems="center"
                                 >
                                     {whyData.map(item => (
-                                        // The mx: 'auto' is no longer needed on the child Box because the parent Stack now handles alignment.
                                         <Box key={item.question} sx={{ textAlign: 'center', maxWidth: '320px' }}>
                                             {item.icon}
                                             <Typography variant="h6" sx={{ mt: 1.5, mb: 0.5, fontWeight: 'bold' }}>
@@ -144,7 +141,6 @@ const SplashPage: React.FC = () => {
                     </Container>
                 </Box>
 
-                {/* FINAL CTA SECTION (Unchanged) */}
                 <Box sx={{ bgcolor: 'primary.main', color: 'white', py: { xs: 8, md: 12 }, textAlign: 'center' }}>
                     <Container maxWidth="md"><Fade direction="up" triggerOnce><Typography variant="h2" sx={{ fontSize: { xs: '2.2rem', sm: '3rem' }, fontWeight: 800 }}>Ready to Find Your Court?</Typography><Typography sx={{ my: 3, mx: 'auto', maxWidth: '600px', color: 'grey.300' }}>Spend less time waiting and more time playing. It's free to use and always will be for players.</Typography><Button variant="contained" size="large" onClick={() => navigate('/dashboard')} color="secondary" sx={{ borderRadius: '999px', px: 5, py: 1.5, fontWeight: 'bold', fontSize: '1.1rem', textTransform: 'none', bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: 'grey.200' } }}>Start Searching Now</Button></Fade></Container>
                 </Box>
