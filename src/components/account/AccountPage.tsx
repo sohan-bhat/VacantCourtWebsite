@@ -74,7 +74,7 @@ const AccountPage: React.FC = () => {
             </Box>
             <Divider />
             <Box sx={{ p: 1.5 }}>
-                <ListItemButton onClick={() => navigate('/')} sx={{ borderRadius: '8px' }}>
+                <ListItemButton onClick={() => navigate('/dashboard')} sx={{ borderRadius: '8px' }}>
                     <ListItemIcon><ArrowBackIcon /></ListItemIcon>
                     <ListItemText primary="Back to Dashboard" />
                 </ListItemButton>

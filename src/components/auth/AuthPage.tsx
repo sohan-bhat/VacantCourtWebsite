@@ -29,7 +29,7 @@ const AuthPage: React.FC = () => {
 
     useEffect(() => {
         if (!authIsLoading && currentUser) {
-            navigate('/');
+            navigate('/dashboard');
         }
     }, [currentUser, authIsLoading, navigate]);
 
@@ -48,7 +48,7 @@ const AuthPage: React.FC = () => {
             await signInWithGoogle();
             toast.success('Successfully signed in with Google!');
             trackUserSignUp('google')
-            navigate('/');
+            navigate('/dashboard');
         } catch (error: any) {
             setIsLoading(false);
         }
@@ -113,7 +113,7 @@ const AuthPage: React.FC = () => {
                 await signUpWithEmail(email, password);
                 toast.success('Account created successfully! Welcome!');
                 trackUserSignUp('email')
-                navigate('/');
+                navigate('/dashboard');
             } catch (error) {
                 handleAuthError(error);
             }
@@ -121,7 +121,7 @@ const AuthPage: React.FC = () => {
             try {
                 await loginWithEmail(email, password);
                 toast.success('Logged in successfully! Welcome back!');
-                navigate('/');
+                navigate('/dashboard');
             } catch (error) {
                 handleAuthError(error);
             }
