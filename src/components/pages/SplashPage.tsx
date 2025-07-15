@@ -107,7 +107,7 @@ const SplashPage: React.FC = () => {
     return (
         <ThemeProvider theme={splashTheme}>
             <PageMeta
-                title="Understand Us"
+                title="Find Available Courts"
                 description="Know before you go. VacantCourt shows you the real-time availability of tennis & pickleball courts, powered by our unique hardware sensor system."
             />
             <FloatingHeader />
