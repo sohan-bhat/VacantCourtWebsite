@@ -22,7 +22,7 @@ const TermsOfService: React.FC = () => {
                             Terms of Service
                         </Typography>
                         <Typography fontFamily={"Rubik"} variant="body2" color="text.secondary" paragraph>
-                            Last Updated: July 3, 2024
+                            Last Updated: July 3, 2025
                         </Typography>
 
                         <Typography fontFamily={"Rubik"} paragraph>

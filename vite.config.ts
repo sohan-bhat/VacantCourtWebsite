@@ -47,6 +47,7 @@ export default defineConfig(async () => {
 
     const staticRoutes = [
         '/',
+        '/dashboard',
         '/privacy',
         '/tos',
     ];

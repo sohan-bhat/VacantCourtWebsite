@@ -75,7 +75,7 @@ function Header() {
         <header className="app-header">
             <div className="header-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                 <nav className='main-nav' style={{position: 'relative', top: '3px'}}>
-                    <Link to="/" className="logo-link">
+                    <Link to="/dashboard" className="logo-link">
                         <img src='/ground.png' alt="Vacant Court Logo" className="header-logo-img" />
                         <span className="header-logo-text">Vacant Court</span>
                     </Link>
