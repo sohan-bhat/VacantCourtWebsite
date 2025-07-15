@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Button, Container, Typography, Stack, Paper, createTheme, ThemeProvider, AppBar, Toolbar, useMediaQuery } from '@mui/material';
+import { Box, Button, Container, Typography, Stack, Paper, createTheme, ThemeProvider, AppBar, Toolbar, useMediaQuery, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
@@ -10,7 +10,10 @@ import GridViewIcon from '@mui/icons-material/GridView';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
+import { IconButton } from '@mui/material';
 import { Fade } from "react-awesome-reveal";
+import { useAuth } from '../auth/AuthContext';
 
 const splashTheme = createTheme({
     typography: { fontFamily: '"Rubik", "Roboto", "Helvetica", "Arial", sans-serif' },
@@ -20,9 +23,59 @@ const splashTheme = createTheme({
 const FloatingHeader: React.FC = () => {
     const navigate = useNavigate();
     const isMobile = useMediaQuery(splashTheme.breakpoints.down('sm'));
+
+    const { currentUser, isLoading } = useAuth();
+
+    const renderAuthButtons = () => {
+        if (isLoading) {
+            return <Box sx={{ width: 90, display: 'flex', justifyContent: 'center' }}><CircularProgress size={24} /></Box>;
+        }
+
+        if (currentUser) {
+            return isMobile ? (
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                    <Button variant="outlined" color="primary" size="small" onClick={() => navigate('/dashboard')} startIcon={<GridViewIcon />} sx={{ borderRadius: '999px', textTransform: 'none' }}>
+                        Dashboard
+                    </Button>
+                    <IconButton color="primary" onClick={() => navigate('/account')} aria-label="account">
+                        <AccountCircleIcon />
+                    </IconButton>
+                </Stack>
+            ) : (
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Button variant="outlined" color="primary" size="small" onClick={() => navigate('/dashboard')} startIcon={<GridViewIcon />} sx={{ borderRadius: '999px', textTransform: 'none' }}>
+                        Dashboard
+                    </Button>
+                    <Button variant="contained" color="primary" size="small" onClick={() => navigate('/account')} startIcon={<AccountCircleIcon />} sx={{ borderRadius: '999px', textTransform: 'none' }}>
+                        My Account
+                    </Button>
+                </Stack>
+            );
+        } else {
+            return (
+                <Stack direction="row" spacing={1.5}>
+                    <Button variant="outlined" color="primary" size="small" onClick={() => navigate('/dashboard')} startIcon={<GridViewIcon />} sx={{ borderRadius: '999px', textTransform: 'none', display: { xs: 'none', sm: 'inline-flex' } }}>
+                        Dashboard
+                    </Button>
+                    <Button variant="contained" color="primary" size="small" onClick={() => navigate('/auth')} startIcon={<LoginIcon />} sx={{ borderRadius: '999px', textTransform: 'none' }}>
+                        {isMobile ? 'Login' : 'Login / Sign Up'}
+                    </Button>
+                </Stack>
+            );
+        }
+    };
+
     return (
         <AppBar position="sticky" sx={{ top: 0, backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255, 255, 255, 0.8)', boxShadow: 'inset 0 -1px 0 0 #e5e7eb', color: 'text.primary' }}>
-            <Container maxWidth="lg"><Toolbar disableGutters><Stack direction="row" alignItems="center" spacing={1} sx={{ flexGrow: 1 }}><img src='/ground.png' alt="Logo" style={{ height: 28 }} /><Typography variant="h6" sx={{ fontWeight: 'bold' }}>VacantCourt</Typography></Stack><Stack direction="row" spacing={1.5}><Button variant="outlined" color="primary" size="small" onClick={() => navigate('/dashboard')} startIcon={<GridViewIcon />} sx={{ borderRadius: '999px', textTransform: 'none', display: { xs: 'none', sm: 'inline-flex' } }}>Dashboard</Button><Button variant="contained" color="primary" size="small" onClick={() => navigate('/auth')} startIcon={<LoginIcon />} sx={{ borderRadius: '999px', textTransform: 'none' }}>{isMobile ? 'Login' : 'Login / Sign Up'}</Button></Stack></Toolbar></Container>
+            <Container maxWidth="lg">
+                <Toolbar disableGutters>
+                    <Stack direction="row" alignItems="center" spacing={1} sx={{ flexGrow: 1 }}>
+                        <img src='/ground.png' alt="Logo" style={{ height: 28 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>VacantCourt</Typography>
+                    </Stack>
+                    {renderAuthButtons()}
+                </Toolbar>
+            </Container>
         </AppBar>
     );
 };
