@@ -28,7 +28,7 @@ const AppContent: React.FC = () => {
 
     const showHeaderAndFooter = !!(onDashboard || onCourtDetails || onPrivacyPolicy || onTermsOfService) && !onAccountPage;
 
-    const mainContentClass = onAccountPage || onSplashPage ? 'app-content full-width-content' : `app-content ${location.pathname === '/auth' ? 'auth-page-content' : ''}`;
+    const mainContentClass = onAccountPage || onSplashPage || onTermsOfService || onPrivacyPolicy ? 'app-content full-width-content' : `app-content ${location.pathname === '/auth' ? 'auth-page-content' : ''}`;
 
     return (
         <div className="app-container">

@@ -14,6 +14,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import { IconButton } from '@mui/material';
 import { Fade } from "react-awesome-reveal";
 import { useAuth } from '../auth/AuthContext';
+import PageMeta from '../layout/PageMeta';
 
 const splashTheme = createTheme({
     typography: { fontFamily: '"Rubik", "Roboto", "Helvetica", "Arial", sans-serif' },
@@ -104,6 +105,10 @@ const SplashPage: React.FC = () => {
 
     return (
         <ThemeProvider theme={splashTheme}>
+            <PageMeta
+                title="Understand Us"
+                description="Know before you go. VacantCourt shows you the real-time availability of tennis & pickleball courts, powered by our unique hardware sensor system."
+            />
             <FloatingHeader />
             <Box sx={{ width: '100%', overflowX: 'hidden', bgcolor: 'background.paper' }}>
                 <Box sx={{ background: 'radial-gradient(circle, rgba(230,230,255,0.4) 0%, rgba(255,255,255,0) 60%)', pt: { xs: 6, md: 10 }, pb: { xs: 8, md: 12 }, textAlign: 'center' }}>
@@ -195,7 +200,7 @@ const SplashPage: React.FC = () => {
                 </Box>
 
                 <Box sx={{ bgcolor: 'primary.main', color: 'white', py: { xs: 8, md: 12 }, textAlign: 'center' }}>
-                    <Container maxWidth="md"><Fade direction="up" triggerOnce><Typography variant="h2" sx={{ fontSize: { xs: '2.2rem', sm: '3rem' }, fontWeight: 800 }}>Ready to Find Your Court?</Typography><Typography sx={{ my: 3, mx: 'auto', maxWidth: '600px', color: 'grey.300' }}>Spend less time waiting and more time playing. It's free to use and always will be for players.</Typography><Button variant="contained" size="large" onClick={() => navigate('/dashboard')} color="secondary" sx={{ borderRadius: '999px', px: 5, py: 1.5, fontWeight: 'bold', fontSize: '1.1rem', textTransform: 'none', bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: 'grey.200' } }}>Start Searching Now</Button></Fade></Container>
+                    <Container maxWidth="md"><Fade direction="up" triggerOnce><Typography variant="h2" sx={{ fontSize: { xs: '2.2rem', sm: '3rem' }, fontWeight: 800 }}>Ready to Find Your <i> Vacant</i> Court?</Typography><Typography sx={{ my: 3, mx: 'auto', maxWidth: '600px', color: 'grey.300' }}>Spend less time waiting and more time playing. It's free to use and always will be for players.</Typography><Button variant="contained" size="large" onClick={() => navigate('/dashboard')} color="secondary" sx={{ borderRadius: '999px', px: 5, py: 1.5, fontWeight: 'bold', fontSize: '1.1rem', textTransform: 'none', bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: 'grey.200' } }}>Start Searching Now</Button></Fade></Container>
                 </Box>
             </Box>
         </ThemeProvider>
