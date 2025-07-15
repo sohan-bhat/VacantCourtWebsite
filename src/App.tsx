@@ -13,11 +13,13 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import AccountPage from './components/account/AccountPage';
 import ProfileSettings from './components/account/ProfileSettings';
 import SubscriptionManager from './components/account/SubscriptionManager';
+import SplashPage from './components/pages/SplashPage';
 
 const AppContent: React.FC = () => {
     const location = useLocation();
 
-    const onDashboard = useMatch({ path: "/", end: true });
+    const onSplashPage = useMatch({ path: "/", end: true })
+    const onDashboard = useMatch("/dashboard");
     const onCourtDetails = useMatch("/court/:id");
     const onPrivacyPolicy = useMatch("/privacy")
     const onTermsOfService = useMatch("/tos")
@@ -26,7 +28,7 @@ const AppContent: React.FC = () => {
 
     const showHeaderAndFooter = !!(onDashboard || onCourtDetails || onPrivacyPolicy || onTermsOfService) && !onAccountPage;
 
-    const mainContentClass = onAccountPage ? 'app-content full-width-content' : `app-content ${location.pathname === '/auth' ? 'auth-page-content' : ''}`;
+    const mainContentClass = onAccountPage || onSplashPage ? 'app-content full-width-content' : `app-content ${location.pathname === '/auth' ? 'auth-page-content' : ''}`;
 
     return (
         <div className="app-container">
@@ -34,7 +36,8 @@ const AppContent: React.FC = () => {
 
             <main className={mainContentClass}>
                 <Routes>
-                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/" element={<SplashPage />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/court/:id" element={<CourtDetails />} />
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/privacy" element={<PrivacyPolicy />} />
