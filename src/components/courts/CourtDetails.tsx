@@ -197,7 +197,7 @@ function CourtDetails() {
         try {
             await deleteDocument('Courts', id);
             toast.success('Facility deleted successfully.');
-            navigate('/');
+            navigate('/dashboard');
         } catch (error) {
             console.error("Error deleting facility:", error);
             toast.error('Failed to delete facility. Please try again.');
@@ -263,7 +263,7 @@ function CourtDetails() {
                     gap: { xs: 1, md: 1.5 }
                 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, minWidth: 0 }}>
-                        <Link to="/" style={{ textDecoration: 'none' }}>
+                        <Link to="/dashboard" style={{ textDecoration: 'none' }}>
                             <IconButton color="primary" sx={{ p: 0.5 }}>
                                 <ArrowBackIcon />
                             </IconButton>
