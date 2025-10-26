@@ -38,6 +38,12 @@ A picture is worth a thousand words, right? Here's a peek at VacantCourt in acti
 *   **Clean & Responsive:** Built with Material-UI, so it looks good and works smoothly on any device.
 
 ---
+## This project was part of a Hackathon!
+
+That's right! This projected was submitted for the "Youth Coders Hack 2025" for the goal of social good!
+You can find more about the hackathon on the Devpost: https://youth-coders-hack.devpost.com/
+---
+---
 ## 🤝 Want to Chip In? (Contributing)
 
 Hey, if you've got ideas or spot a bug, contributions are awesome!
