@@ -539,7 +539,7 @@ function CourtDetails() {
                         courtName={courtDetails.name}
                         onSuccess={() => {
                             setTransferDialogOpen(false);
-                            navigate('/');
+                            navigate('/dashboard');
                         }} />
                 </>
             )}
