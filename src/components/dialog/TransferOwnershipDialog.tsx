@@ -3,7 +3,7 @@ import {
     Dialog, DialogTitle, DialogContent, DialogContentText, TextField,
     DialogActions, Button, CircularProgress, Box
 } from '@mui/material';
-import { transferCourtOwnership } from '../../services/courtSerivce';
+import { transferCourtOwnership } from '../../services/courtService';
 import toast from 'react-hot-toast';
 
 interface TransferOwnershipDialogProps {

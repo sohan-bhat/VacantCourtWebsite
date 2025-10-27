@@ -20,7 +20,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import { updateDocument } from '../../services/firestoreSerivce';
+import { updateDocument } from '../../services/firestoreService';
 import { uploadImage } from '../../services/storageService';
 import { Court, SubCourt } from '../../data/courtData';
 import { useAuth } from '../auth/AuthContext';
